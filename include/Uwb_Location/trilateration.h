@@ -13,6 +13,7 @@
 #define __TRILATERATION_H__
 
 #include "stdio.h"
+#include <Eigen/Core>
 
 #define		TRIL_3SPHERES							3
 #define		TRIL_4SPHERES							4
@@ -29,7 +30,6 @@ const float Gyro_G = 0.03051756f;	//陀螺仪int16角速度除以分辨率得到
 const float Gyro_Gr = 0.0005326f; //陀螺仪int16角速度转度再转弧度 量程1000
 //static Quaternion NumQ = {1, 0, 0, 0};  // 四元素
 
-float Q_rsqrt(float number);
 typedef struct vec3d	vec3d;
 
 struct vec3d {
@@ -87,10 +87,8 @@ double dot(const vec3d vector1, const vec3d vector2);
 /* Replace vector with its cross product with another vector. */
 vec3d cross(const vec3d vector1, const vec3d vector2);
 
-int GetLocation(vec3d *best_solution, vec3d* anchorArray, int *distanceArray);
+int GetLocation(vec3d *best_solution, Eigen::MatrixXd anchorArray, int *distanceArray);
 
 double vdist(const vec3d v1, const vec3d v2);
-void IMUupdate(double gx, double gy, double gz, double ax, double ay, double az);
-//加速度，角速度获取四元数
-Quaternion GetAngle(const ImuData_t *pMpu, float dt);
+
 #endif

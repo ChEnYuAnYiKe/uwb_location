@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(Uwb_Location)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   message_generation
@@ -32,23 +34,35 @@ CATKIN_DEPENDS roscpp rospy std_msgs message_runtime serial
 #  DEPENDS system_lib
 )
 
-
+find_package(Eigen3  REQUIRED)
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIR}
 )
 
 add_library(trilateration include/Uwb_Location/trilateration.h src/trilateration.cpp)
 add_dependencies(trilateration ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(trilateration
+         ${EIGEN3_LIBS}
          ${catkin_LIBRARIES})
 
+add_library(autoposition include/Uwb_Location/autoposition.h src/autoposition.cpp)
+add_dependencies(autoposition ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(autoposition
+        ${EIGEN3_LIBS}
+        ${catkin_LIBRARIES})
+        
+add_library(uwblocation include/Uwb_Location/UwbLocation.h src/UwbLocation.cpp)
+add_dependencies(autoposition ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(autoposition
+        ${EIGEN3_LIBS}
+        ${catkin_LIBRARIES})        
 
-#可执行文件配置
-add_executable(UwbLocation src/UwbLocation.cpp src/trilateration.cpp )
+add_executable(UwbLocation src/UwbLocation.cpp src/trilateration.cpp src/autoposition.cpp)
 add_dependencies(UwbLocation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(UwbLocation
         ${catkin_LIBRARIES})

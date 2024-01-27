@@ -629,7 +629,7 @@ int cmp(const void *m,const void *n) //定义返回值返回方式
     return ((struct num*)m) ->distance - ((struct num*)n) ->distance;
 }
 
-int GetLocation(vec3d *best_solution, vec3d* anchorArray, int *distanceArray)
+int GetLocation(vec3d *best_solution, Eigen::MatrixXd anchorArray, int *distanceArray)
 {
 
     vec3d	o1, o2, p1, p2, p3, p4;
@@ -667,9 +667,9 @@ int GetLocation(vec3d *best_solution, vec3d* anchorArray, int *distanceArray)
     {
         use3anc=1;
         /* Anchors coordinate */
-        p1.x = anchorArray[valid_anc_num[0].anc_ID].x;		p1.y = anchorArray[valid_anc_num[0].anc_ID].y;	    p1.z = anchorArray[valid_anc_num[0].anc_ID].z;
-        p2.x = anchorArray[valid_anc_num[1].anc_ID].x;		p2.y = anchorArray[valid_anc_num[1].anc_ID].y;	    p2.z = anchorArray[valid_anc_num[1].anc_ID].z;
-        p3.x = anchorArray[valid_anc_num[2].anc_ID].x;		p3.y = anchorArray[valid_anc_num[2].anc_ID].y;	    p3.z = anchorArray[valid_anc_num[2].anc_ID].z;
+        p1.x = anchorArray(valid_anc_num[0].anc_ID,0);		p1.y = anchorArray(valid_anc_num[0].anc_ID,1);	    p1.z = anchorArray(valid_anc_num[0].anc_ID,2);
+        p2.x = anchorArray(valid_anc_num[1].anc_ID,0);		p2.y = anchorArray(valid_anc_num[1].anc_ID,1);	    p2.z = anchorArray(valid_anc_num[1].anc_ID,2);
+        p3.x = anchorArray(valid_anc_num[2].anc_ID,0);		p3.y = anchorArray(valid_anc_num[2].anc_ID,1);	    p3.z = anchorArray(valid_anc_num[2].anc_ID,2);
         p4.x = p1.x;		                                p4.y = p1.y;	                                    p4.z = p1.z;
 
         r1 = (double) distanceArray[valid_anc_num[0].anc_ID] / 1000.0;
@@ -685,10 +685,10 @@ int GetLocation(vec3d *best_solution, vec3d* anchorArray, int *distanceArray)
     else if(valid_anc_count==4)//直接执行4基站定位
     {
         /* Anchors coordinate */
-        p1.x = anchorArray[valid_anc_num[0].anc_ID].x;		p1.y = anchorArray[valid_anc_num[0].anc_ID].y;	    p1.z = anchorArray[valid_anc_num[0].anc_ID].z;
-        p2.x = anchorArray[valid_anc_num[1].anc_ID].x;		p2.y = anchorArray[valid_anc_num[1].anc_ID].y;	    p2.z = anchorArray[valid_anc_num[1].anc_ID].z;
-        p3.x = anchorArray[valid_anc_num[2].anc_ID].x;		p3.y = anchorArray[valid_anc_num[2].anc_ID].y;	    p3.z = anchorArray[valid_anc_num[2].anc_ID].z;
-        p4.x = anchorArray[valid_anc_num[3].anc_ID].x;		p4.y = anchorArray[valid_anc_num[3].anc_ID].y;	    p4.z = anchorArray[valid_anc_num[3].anc_ID].z;
+        p1.x = anchorArray(valid_anc_num[0].anc_ID,0);		p1.y = anchorArray(valid_anc_num[0].anc_ID,1);	    p1.z = anchorArray(valid_anc_num[0].anc_ID,2);
+        p2.x = anchorArray(valid_anc_num[1].anc_ID,0);		p2.y = anchorArray(valid_anc_num[1].anc_ID,1);	    p2.z = anchorArray(valid_anc_num[1].anc_ID,2);
+        p3.x = anchorArray(valid_anc_num[2].anc_ID,0);		p3.y = anchorArray(valid_anc_num[2].anc_ID,1);	    p3.z = anchorArray(valid_anc_num[2].anc_ID,2);
+        p4.x = anchorArray(valid_anc_num[3].anc_ID,0);		p4.y = anchorArray(valid_anc_num[3].anc_ID,1);	    p4.z = anchorArray(valid_anc_num[3].anc_ID,2);
 
 
         r1 = (double) distanceArray[valid_anc_num[0].anc_ID] / 1000.0;
@@ -706,10 +706,10 @@ int GetLocation(vec3d *best_solution, vec3d* anchorArray, int *distanceArray)
          for(int i=1;i<=valid_anc_count;i++) //输出结果
             printf("No%d DIS=%d,ID=A%d\n",i,valid_anc_num[i].distance,valid_anc_num[i].anc_ID);
         
-        p1.x = anchorArray[valid_anc_num[1].anc_ID].x;		p1.y = anchorArray[valid_anc_num[1].anc_ID].y;	    p1.z = anchorArray[valid_anc_num[1].anc_ID].z;
-        p2.x = anchorArray[valid_anc_num[2].anc_ID].x;		p2.y = anchorArray[valid_anc_num[2].anc_ID].y;	    p2.z = anchorArray[valid_anc_num[2].anc_ID].z;
-        p3.x = anchorArray[valid_anc_num[3].anc_ID].x;		p3.y = anchorArray[valid_anc_num[3].anc_ID].y;	    p3.z = anchorArray[valid_anc_num[3].anc_ID].z;
-        p4.x = anchorArray[valid_anc_num[4].anc_ID].x;		p4.y = anchorArray[valid_anc_num[4].anc_ID].y;	    p4.z = anchorArray[valid_anc_num[4].anc_ID].z;
+        p1.x = anchorArray(valid_anc_num[0].anc_ID,0);		p1.y = anchorArray(valid_anc_num[0].anc_ID,1);	    p1.z = anchorArray(valid_anc_num[0].anc_ID,2);
+        p2.x = anchorArray(valid_anc_num[1].anc_ID,0);		p2.y = anchorArray(valid_anc_num[1].anc_ID,1);	    p2.z = anchorArray(valid_anc_num[1].anc_ID,2);
+        p3.x = anchorArray(valid_anc_num[2].anc_ID,0);		p3.y = anchorArray(valid_anc_num[2].anc_ID,1);	    p3.z = anchorArray(valid_anc_num[2].anc_ID,2);
+        p4.x = anchorArray(valid_anc_num[3].anc_ID,0);		p4.y = anchorArray(valid_anc_num[3].anc_ID,1);	    p4.z = anchorArray(valid_anc_num[3].anc_ID,2);
 
         r1 = (double) distanceArray[valid_anc_num[1].anc_ID] / 1000.0;
         r2 = (double) distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
@@ -727,10 +727,10 @@ int GetLocation(vec3d *best_solution, vec3d* anchorArray, int *distanceArray)
     if((result==0)&&(valid_anc_count>4))//多于4基站选取后计算失败，把第1舍掉用第2345计算
     {
         puts("Second calculation");
-        p1.x = anchorArray[valid_anc_num[2].anc_ID].x;		p1.y = anchorArray[valid_anc_num[2].anc_ID].y;	    p1.z = anchorArray[valid_anc_num[2].anc_ID].z;
-        p2.x = anchorArray[valid_anc_num[3].anc_ID].x;		p2.y = anchorArray[valid_anc_num[3].anc_ID].y;	    p2.z = anchorArray[valid_anc_num[3].anc_ID].z;
-        p3.x = anchorArray[valid_anc_num[4].anc_ID].x;		p3.y = anchorArray[valid_anc_num[4].anc_ID].y;	    p3.z = anchorArray[valid_anc_num[4].anc_ID].z;
-        p4.x = anchorArray[valid_anc_num[5].anc_ID].x;		p4.y = anchorArray[valid_anc_num[5].anc_ID].y;	    p4.z = anchorArray[valid_anc_num[5].anc_ID].z;
+        p1.x = anchorArray(valid_anc_num[0].anc_ID,0);		p1.y = anchorArray(valid_anc_num[0].anc_ID,1);	    p1.z = anchorArray(valid_anc_num[0].anc_ID,2);
+        p2.x = anchorArray(valid_anc_num[1].anc_ID,0);		p2.y = anchorArray(valid_anc_num[1].anc_ID,1);	    p2.z = anchorArray(valid_anc_num[1].anc_ID,2);
+        p3.x = anchorArray(valid_anc_num[2].anc_ID,0);		p3.y = anchorArray(valid_anc_num[2].anc_ID,1);	    p3.z = anchorArray(valid_anc_num[2].anc_ID,2);
+        p4.x = anchorArray(valid_anc_num[3].anc_ID,0);		p4.y = anchorArray(valid_anc_num[3].anc_ID,1);	    p4.z = anchorArray(valid_anc_num[3].anc_ID,2);
 
         r1 = (double) distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
         r2 = (double) distanceArray[valid_anc_num[3].anc_ID] / 1000.0;

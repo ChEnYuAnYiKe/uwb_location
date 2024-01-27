@@ -1,33 +1,19 @@
-#include <ros/ros.h>
-#include <serial/serial.h>
-#include <iostream>
-#include <string>
-#include <string.h>
-#include "std_msgs/String.h"              //ros定义的String数据类型
-#include "Uwb_Location/trilateration.h"
-#include "Uwb_Location/uwb.h"
-#include <sensor_msgs/Imu.h>
+#include "Uwb_Location/UwbLocation.h"
 
 using namespace std;
-unsigned char receive_buf[200] = {0};
+
+unsigned char receive_buf[300] = {0};
 vec3d report;
+Eigen::MatrixXd anchorArray = Eigen::MatrixXd::Zero(8, 3);
 Quaternion q;
+Quaternion Q;
 int result = 0; 
 float velocityac[3],angleac[3];
-Quaternion Q;
-
-#define MAX_DATA_NUM	1024	//传消息内容最大长度
-#define DataHead        'm'       
-#define DataHead2        'M'   
-#define DataTail        '\n'   
-unsigned char BufDataFromCtrl[MAX_DATA_NUM];
-int BufCtrlPosit_w = 0, BufCtrlPosit_r = 0;
-int DataRecord=0, rcvsign = 0;
-
+bool isAutoposition = false;
 
 void receive_deal_func()
 {
-    vec3d anchorArray[8];
+    
     int range[8] = {-1};
 
     //  'mc' tag to anchor range bias corrected ranges – used for tag location
@@ -62,6 +48,58 @@ void receive_deal_func()
         {
             return;
         }
+
+        result = GetLocation(&report, anchorArray, &range[0]);
+
+        printf("result = %d\n",result);
+        printf("x = %f\n",report.x);
+        printf("y = %f\n",report.y);
+        printf("z = %f\n",report.z);
+
+        return;
+    }
+    // 'ma' anchor to anchor range bias corrected ranges – used for anchor auto-positioning
+    else if ((receive_buf[0] == 'm') && (receive_buf[1] == 'a'))
+    {
+        int aid, tid, lnum, seq, mask;
+        int rangetime;
+        char role;
+        int rx_power;
+        int data_len = strlen((char*)receive_buf);
+
+        if((data_len == 106))
+        {
+            autoPosRunning = true;
+            int n = sscanf((char*)receive_buf,"ma %x %x %x %x %x %x %x %x %x %x %x %x %c%d:%d %x",
+                           &mask,
+                           &range[0], &range[1],
+                           &range[2], &range[3],
+                           &range[4], &range[5],
+                           &range[6], &range[7],
+                           &lnum, &seq, &rangetime, &role, &tid, &aid, &rx_power);
+            printf("mask=0x%02x\nrange[0]=%d(mm)\nrange[1]=%d(mm)\nrange[2]=%d(mm)\nrange[3]=%d(mm)\nrole=%c:%d\r\n",
+                                mask, range[0], range[1], range[2], range[3], role, aid);
+            
+            if(n == EOF)
+            {
+                ROS_ERROR_STREAM("data Error !!!!!!!!!!!!!!!!");
+                return;
+            }
+        }
+        else
+        {
+            ROS_ERROR_STREAM("data Error !!!!!!!!!!!!!!!!");
+            return;
+        }
+        // 对收集到的基站间距离进行自定位，获得定位后的坐标
+        // ATTENTION：该自定位算法只能定位各个基站的二维坐标(x,y)，z轴的坐标需要给定
+        autopositioning(&range[0], aid, anchorArray);
+        printf("[Autoposition] A0:(%d, %d, %d),A1:(%d, %d, %d),A2:(%d, %d, %d),A3:(%d, %d, %d)\n",
+                anchorArray(0,0), anchorArray(0,1), anchorArray(0,2),
+                anchorArray(1,0), anchorArray(1,1), anchorArray(1,2),
+                anchorArray(2,0), anchorArray(2,1), anchorArray(2,2),
+                anchorArray(3,0), anchorArray(3,1), anchorArray(3,2));
+        isAutoposition = true;
     }
     //MP0034,0,302,109,287,23,134.2,23.4,23,56
     else if((receive_buf[0] == 'M') && (receive_buf[1] == 'P'))
@@ -96,157 +134,11 @@ void receive_deal_func()
         float dis = (float)atoi(cut_data[4]) / 100.0f;
         printf("dis = %.2fm\n", dis);
     }
-    else if((receive_buf[0] == 'm') && (receive_buf[1] == 'i'))
-    {
-        float rangetime2;
-        float acc[3], gyro[3];
-
-        //mi,981.937,0.63,NULL,NULL,NULL,-2.777783,1.655664,9.075048,-0.004788,-0.014364,-0.001596,T0     //13
-        //mi,3.710,0.55,NULL,NULL,NULL,NULL,NULL,NULL,NULL,-1.327881,0.653174,9.577490,-0.004788,-0.013300,-0.002128,T0    //17
-        char *ptr, *retptr;
-        ptr = (char*)receive_buf;
-        char cut_data[30][12];
-        int cut_count = 0;
-
-        while((retptr = strtok(ptr,",")) != NULL )
-        {
-            //printf("%s\n", retptr);
-            strcpy(cut_data[cut_count], retptr);
-            ptr = NULL;
-            cut_count++;
-            if(cut_count >= 29)
-                break;
-        }
-
-        rangetime2 = atof(cut_data[1]);
-        
-        if(cut_count == 13)  //4anchors
-        {
-            for(int i = 0; i < 4; i++)
-            {
-                if(strcmp(cut_data[i+2], "NULL"))
-                {
-                    range[i] = atof(cut_data[i+2]) * 1000;
-                }
-                else
-                {
-                    range[i] = -1;
-                }
-            }
-
-            for(int i = 0; i < 3; i++)
-            {
-                acc[i] = atof(cut_data[i+6]);
-            }
-
-            for(int i = 0; i < 3; i++)
-            {
-                gyro[i] = atof(cut_data[i+9]);
-            }
-
-            printf("rangetime = %.3f\n", rangetime2);
-            printf("range[0] = %d\n", range[0]);
-            printf("range[1] = %d\n", range[1]);
-            printf("range[2] = %d\n", range[2]);
-            printf("range[3] = %d\n", range[3]);
-            printf("acc[0] = %.3f\n", acc[0]);
-            printf("acc[1] = %.3f\n", acc[1]);
-            printf("acc[2] = %.3f\n", acc[2]);
-            printf("gyro[0] = %.3f\n", gyro[0]);
-            printf("gyro[1] = %.3f\n", gyro[1]);
-            printf("gyro[2] = %.3f\n", gyro[2]);
-        }
-        else if(cut_count == 17)  //8anchors
-        {
-            for(int i = 0; i < 8; i++)
-            {
-                if(strcmp(cut_data[i+2], "NULL"))
-                {
-                    range[i] = atof(cut_data[i+2]) * 1000;
-                }
-                else
-                {
-                    range[i] = -1;
-                }
-            }
-
-            for(int i = 0; i < 3; i++)
-            {
-                acc[i] = atof(cut_data[i+6+4]);
-            }
-
-            for(int i = 0; i < 3; i++)
-            {
-                gyro[i] = atof(cut_data[i+9+4]);
-            }
-
-            printf("rangetime = %.3f\n", rangetime2);
-            printf("range[0] = %d\n", range[0]);
-            printf("range[1] = %d\n", range[1]);
-            printf("range[2] = %d\n", range[2]);
-            printf("range[3] = %d\n", range[3]);
-            printf("range[4] = %d\n", range[4]);
-            printf("range[5] = %d\n", range[5]);
-            printf("range[6] = %d\n", range[6]);
-            printf("range[7] = %d\n", range[7]);
-            printf("acc[0] = %.3f\n", acc[0]);
-            printf("acc[1] = %.3f\n", acc[1]);
-            printf("acc[2] = %.3f\n", acc[2]);
-            printf("gyro[0] = %.3f\n", gyro[0]);
-            printf("gyro[1] = %.3f\n", gyro[1]);
-            printf("gyro[2] = %.3f\n", gyro[2]);
-        }
-        else
-        {
-            return;
-        }
-    }
     else
     {
         puts("no range message");
         return;
     }
-
-    //A0 uint:m
-    anchorArray[0].x = 0.0; 
-    anchorArray[0].y = 0.0; 
-    anchorArray[0].z = 2.5; 
-    //A1 uint:m
-    anchorArray[1].x = 0.0; 
-    anchorArray[1].y = 1.0; 
-    anchorArray[1].z = 2.5;
-    //A2 uint:m
-    anchorArray[2].x = 1.0; 
-    anchorArray[2].y = 0.0; 
-    anchorArray[2].z = 2.5; 
-    //A3 uint:m
-    anchorArray[3].x = 1.0; 
-    anchorArray[3].y = 1.0; 
-    anchorArray[3].z = 2.5; 
-    //A4 uint:m
-    anchorArray[4].x = 2.0; 
-    anchorArray[4].y = 1.0; 
-    anchorArray[4].z = 2.5; 
-    //A5 uint:m
-    anchorArray[5].x = 2.0; 
-    anchorArray[5].y = 0.0; 
-    anchorArray[5].z = 2.5;
-    //A6 uint:m
-    anchorArray[6].x = 3.0; 
-    anchorArray[6].y = 1.0; 
-    anchorArray[6].z = 2.5; 
-    //A7 uint:m
-    anchorArray[7].x = 3.0; 
-    anchorArray[7].y = 0.0; 
-    anchorArray[7].z = 2.5; 
-
-    result = GetLocation(&report, &anchorArray[0], &range[0]);
-
-    printf("result = %d\n",result);
-    printf("x = %f\n",report.x);
-    printf("y = %f\n",report.y);
-    printf("z = %f\n",report.z);
-
 }
 
 
