@@ -25,7 +25,6 @@ generate_messages(
   std_msgs
 )
 
-
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include

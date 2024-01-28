@@ -80,6 +80,7 @@ bool autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
                 // 同时y轴垂直于x轴，A2, A3的y坐标为正
                 int nNodes = stationNumber;
                 int viewNode = 0;
+
                 Eigen::MatrixXd  twrdistance = Eigen::MatrixXd::Zero(nNodes, nNodes);
                 Eigen::MatrixXd  transCoord = Eigen::MatrixXd::Zero(nNodes, nDim);
                 Eigen::MatrixXd  estCoord = Eigen::MatrixXd::Zero(nNodes, nDim);
@@ -106,6 +107,7 @@ bool autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
                     anchorArray(int (receiveAID[i]), 2) = height; // 默认所有的基站都处于同一高度
                     //TODO 可以增加传感器，动态调整z轴的坐标
                 }
+                
                 isFirst = false;
                 errNum = 0;
                 printf("position success!\n");

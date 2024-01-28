@@ -6,18 +6,17 @@ unsigned char receive_buf[300] = {0};
 vec3d report;
 Eigen::MatrixXd anchorArray = Eigen::MatrixXd::Zero(8, 3);
 Eigen::MatrixXd anchorArray_last = Eigen::MatrixXd::Zero(8, 3);
-Quaternion q;
-Quaternion Q;
 int result = 0; 
 int tag_posi_success_cnt = 0; // 成功定位计数器
 bool isAutoposition = false;
-bool AutopositionMode = true;
+const bool AutopositionMode = true;
 
 string order_start = "$ancrangestart\r\n";
 string order_stop = "$ancrangestop\r\n";
 
 void receive_deal_func(serial::Serial& sp)
 {
+    // 初始化距离
     int range[8] = {-1};
 
     //  'mc' tag to anchor range bias corrected ranges – used for tag location
@@ -80,7 +79,7 @@ void receive_deal_func(serial::Serial& sp)
         int rangetime;
         char role;
         int data_len = strlen((char*)receive_buf);
-        //printf("lenmc = %d\n", data_len);
+       
         if(data_len == 106)
         {
             int n = sscanf((char*)receive_buf,"mc %x %x %x %x %x %x %x %x %x %x %x %x %c%d:%d", 
@@ -108,20 +107,22 @@ void receive_deal_func(serial::Serial& sp)
 
         result = GetLocation(&report, anchorArray, &range[0]);
 
-        if(result > 0)
-        {
-            tag_posi_success_cnt++;
-        }  
-        if(tag_posi_success_cnt == 5)
-        {
-            tag_posi_success_cnt = 0;
-            isAutoposition = false; // tag定位成功5次后，则让上一次的基站自标定坐标失效，重新标定
-        }
-
         printf("result = %d\n",result);
         printf("x = %f\n",report.x);
         printf("y = %f\n",report.y);
         printf("z = %f\n",report.z);
+
+        if(result > 0)
+        {
+            tag_posi_success_cnt++;
+        }  
+
+        // tag定位成功5次后，则让上一次的基站自标定坐标失效，重新标定
+        if(tag_posi_success_cnt == 5)
+        {
+            tag_posi_success_cnt = 0;
+            isAutoposition = false; 
+        }
 
         return;
     }
@@ -163,7 +164,7 @@ void receive_deal_func(serial::Serial& sp)
         anchorArray_last = anchorArray;
 
         // 对收集到的基站间距离进行自定位，获得定位后的坐标
-        // ATTENTION：该自定位算法只能定位各个基站的二维坐标(x,y)，z轴的坐标需要给定
+        // 注意：该自定位算法只能定位各个基站的二维坐标(x,y)，z轴的坐标需要给定
         isSuccess = autopositioning(&range[0], aid, anchorArray);
 
         double dist = (anchorArray - anchorArray_last).rowwise().norm().sum();
@@ -172,7 +173,7 @@ void receive_deal_func(serial::Serial& sp)
         {
             // 成功标定且上下两次标定的坐标偏差不超过0.1m
             isAutoposition = true;
-            // 发送串口指令'$ancrangestop\r\n'，关闭基站自标定功能， 开始标签定位
+            // 发送串口指令'$ancrangestop\r\n'，关闭基站自标定功能，开始标签定位
             printf("Autoposition Success!!!");
 
             try {
@@ -244,11 +245,11 @@ int main(int argc, char** argv)
 {
     setlocale(LC_ALL,"");
 	std_msgs::String msg;
-	std_msgs::String  msg_mc;
-	int  data_size;
+	std_msgs::String msg_mc;
+	int data_size;
 	int n;
 	int cnt = 0;
-    ros::init(argc, argv, "uwb_imu_node");//发布imu,uwb节点
+    ros::init(argc, argv, "uwb_location_node");//发布uwb节点
     //创建句柄
     ros::NodeHandle nh;
     ros::NodeHandle nh1;
@@ -301,11 +302,11 @@ int main(int argc, char** argv)
     {
         //获取缓冲区内的字节数
         size_t len = sp.available();
+
         if(len > 0)
         {
             unsigned char usart_buf[1024]={0};
             sp.read(usart_buf, len);
-            //printf("uart_data = %s\n", usart_buf);
 
             unsigned char *pbuf;
             unsigned char buf[2014] = {0};

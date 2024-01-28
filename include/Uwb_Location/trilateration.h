@@ -22,13 +22,6 @@
 #define   halfT                     0.05f
 #define   squa( Sq )                (((float)Sq)*((float)Sq))
 #define   MAX_AHCHOR_NUMBER         8
-//四元数姿态解算
-//float NormAccz;
-//const float M_PI = 3.1415926535;
-const float RtA = 57.2957795f;
-const float Gyro_G = 0.03051756f;	//陀螺仪int16角速度除以分辨率得到度 量程1000
-const float Gyro_Gr = 0.0005326f; //陀螺仪int16角速度转度再转弧度 量程1000
-//static Quaternion NumQ = {1, 0, 0, 0};  // 四元素
 
 typedef struct vec3d	vec3d;
 
@@ -38,31 +31,6 @@ struct vec3d {
 	double	z;
 };
 
-//typedef char uint8_t;
-typedef struct
-{
-    int16_t accX;
-    int16_t accY;
-    int16_t accZ;
-    int16_t gyroX;
-    int16_t gyroY;
-    int16_t gyroZ;
-}ImuData_t;
-
-typedef struct
-{
-	float roll;
-	float pitch;
-	float yaw;
-}angel_t;
-
-typedef struct 
-{
-  float q0;
-  float q1;
-  float q2;
-  float q3;
-} Quaternion;
 /* Return the difference of two vectors, (vector1 - vector2). */
 vec3d vdiff(const vec3d vector1, const vec3d vector2);
 

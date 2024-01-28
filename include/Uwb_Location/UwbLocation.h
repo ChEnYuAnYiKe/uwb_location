@@ -16,6 +16,7 @@
 #define DataHead        'm'       
 #define DataHead2        'M'   
 #define DataTail        '\n'   
+
 unsigned char BufDataFromCtrl[MAX_DATA_NUM];
 int BufCtrlPosit_w = 0;
 int BufCtrlPosit_r = 0;

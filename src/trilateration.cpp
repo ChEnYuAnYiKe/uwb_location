@@ -20,7 +20,6 @@
 #include "iostream"
 using namespace std;
 
-
 /* Largest nonnegative number still considered zero */
 #define   MAXZERO  0.001
 
