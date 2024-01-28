@@ -9,7 +9,6 @@ int errNum = 0;
 int MAX_ERR_NUM = 3;
 Eigen::MatrixXd matrixBuff = Eigen::MatrixXd::Zero(anc_num, anc_num);
 Eigen::MatrixXd ancRangeValuesAvg = Eigen::MatrixXd::Zero(anc_num, anc_num);
-Eigen::VectorXd receiveAID;
 Eigen::Matrix4f g_range_anchor;
 Eigen::Matrix4f g_range_anchor_backup;
 Eigen::Matrix4f g_range_anchor_avg;
@@ -23,27 +22,30 @@ void autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
     {
         matrixBuff(aid, i) = range[i];
     }
-    printf(" aid: %d, aid_last: %d",aid, aid_last);
+    printf(" aid: %d, aid_last: %d\n",aid, aid_last);
 
     if(aid != aid_last)
     {
         if(aid <= aid_last)
         {
             //一组数据接收完毕，开始进行基站坐标解算
+            std::vector<int> receiveAID;
 
             //校验buff数据完整性，是否符合已勾选基站数量
             for (int i = 0; i < anc_num; i++)
             {
                 for (int j = 0; j < anc_num; j++)
                 {
+                    printf("i:%d, j:%d, buff:%f\n", i, j, matrixBuff(i, j));
                     if(matrixBuff(i, j) != 0)
                     {
                         //数据有效，无需继续遍历。将当前aid存入receiveAID
-                        receiveAID << i;
+                        receiveAID.push_back(i);
                         break;
                     }
                 }
             }
+            printf("%d", receiveAID.size());
 
             if(receiveAID.size() == stationNumber)   //有效信号数量为设定值
             {
@@ -98,13 +100,14 @@ void autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
 
                 for(int i=0; i < receiveAID.size(); i++) //  update positions of A0, A1, A2, A3
                 {
-                    anchorArray(int (receiveAID(i)), 0) = estCoord(i, 0);
-                    anchorArray(int (receiveAID(i)), 1) = estCoord(i, 1);
-                    anchorArray(int (receiveAID(i)), 2) = height; // 默认所有的基站都处于同一高度
+                    anchorArray(int (receiveAID[i]), 0) = estCoord(i, 0);
+                    anchorArray(int (receiveAID[i]), 1) = estCoord(i, 1);
+                    anchorArray(int (receiveAID[i]), 2) = height; // 默认所有的基站都处于同一高度
                     //TODO 可以增加传感器，动态调整z轴的坐标
                 }
                 isFirst = false;
                 errNum = 0;
+                printf("position success!\n");
             }
             else
             {

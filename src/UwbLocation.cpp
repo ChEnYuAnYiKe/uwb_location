@@ -88,18 +88,19 @@ void receive_deal_func()
         }
         else
         {
-            ROS_ERROR_STREAM("data Error !!!!!!!!!!!!!!!!");
+            ROS_ERROR_STREAM("data is not 106!");
             return;
         }
         // 对收集到的基站间距离进行自定位，获得定位后的坐标
         // ATTENTION：该自定位算法只能定位各个基站的二维坐标(x,y)，z轴的坐标需要给定
         autopositioning(&range[0], aid, anchorArray);
-        printf("[Autoposition] A0:(%d, %d, %d),A1:(%d, %d, %d),A2:(%d, %d, %d),A3:(%d, %d, %d)\n",
+        printf("[Autoposition] A0:(%f, %f, %f),A1:(%f, %f, %f),A2:(%f, %f, %f),A3:(%f, %f, %f)\n",
                 anchorArray(0,0), anchorArray(0,1), anchorArray(0,2),
                 anchorArray(1,0), anchorArray(1,1), anchorArray(1,2),
                 anchorArray(2,0), anchorArray(2,1), anchorArray(2,2),
                 anchorArray(3,0), anchorArray(3,1), anchorArray(3,2));
-        isAutoposition = true;
+
+        return;
     }
     //MP0034,0,302,109,287,23,134.2,23.4,23,56
     else if((receive_buf[0] == 'M') && (receive_buf[1] == 'P'))
