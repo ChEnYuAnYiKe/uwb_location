@@ -676,10 +676,7 @@ int GetLocation(vec3d *best_solution, Eigen::MatrixXd anchorArray, int *distance
         r2 = (double) distanceArray[valid_anc_num[1].anc_ID] / 1000.0;
         r3 = (double) distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
         r4 = r1;
-
-        // printf("anc1=%d,anc2=%d,anc3=%d\n",valid_anc_num[0],valid_anc_num[1],valid_anc_num[2]);
-        // printf("dis1=%f,dis2=%f,dis3=%f\n",r1,r2,r3);
-        // printf("P1X=%f,P1Y=%f,P1Z=%f\n",p1.x,p1.y,p1.z);
+        
     }
 
     else if(valid_anc_count==4)//直接执行4基站定位

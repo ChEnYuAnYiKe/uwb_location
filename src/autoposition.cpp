@@ -2,19 +2,20 @@
 
 int aid_last = 0;
 int anc_num = 8;
-int nDim = 2;
-int stationNumber = 4;
+const int nDim = 2;
+const int stationNumber = 4;
 bool isFirst = true;
 int errNum = 0;
-int MAX_ERR_NUM = 3;
+const int MAX_ERR_NUM = 3;
+double height = 2.0; // 给定z轴坐标
+
 Eigen::MatrixXd matrixBuff = Eigen::MatrixXd::Zero(anc_num, anc_num);
 Eigen::MatrixXd ancRangeValuesAvg = Eigen::MatrixXd::Zero(anc_num, anc_num);
-Eigen::Matrix4f g_range_anchor;
-Eigen::Matrix4f g_range_anchor_backup;
-Eigen::Matrix4f g_range_anchor_avg;
-double height = 2.0;
+Eigen::Matrix<double, stationNumber, stationNumber> g_range_anchor;
+Eigen::Matrix<double, stationNumber, stationNumber> g_range_anchor_backup;
+Eigen::Matrix<double, stationNumber, stationNumber> g_range_anchor_avg;
 
-void autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray) 
+bool autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray) 
 {
     //将接收到的基站数据进行备份
     matrixBuff(0, aid) = range[0];
@@ -108,6 +109,7 @@ void autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
                 isFirst = false;
                 errNum = 0;
                 printf("position success!\n");
+                return true;
             }
             else
             {
@@ -130,7 +132,7 @@ void autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
         }
         aid_last = aid;
     }
-    return;
+    return false;
 }
 
 void mds(Eigen::MatrixXd twrdistance, int nNodes, int viewNode, Eigen::MatrixXd& transCoord)
@@ -151,7 +153,6 @@ void mds(Eigen::MatrixXd twrdistance, int nNodes, int viewNode, Eigen::MatrixXd&
     s = svd.singularValues();
     u = svd.matrixU();
     v = svd.matrixV();
-
 
     for (int i = 0; i<nDim; i++)
     {

@@ -5,7 +5,7 @@
 #include "trilateration.h"
 
 
-void autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray);
+bool autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray);
 
 void mds(Eigen::MatrixXd twrdistance, int nNodes, int viewNode, Eigen::MatrixXd& transCoord);
 
