@@ -9,7 +9,10 @@ Eigen::MatrixXd anchorArray_last = Eigen::MatrixXd::Zero(8, 3);
 int result = 0; 
 int tag_posi_success_cnt = 0; // 成功定位计数器
 bool isAutoposition = false;
-const bool AutopositionMode = true;
+const bool AutopositionMode = false;
+
+// 1：使用三边定位法；2：使用最小二乘法
+const int tagposition_mode = 1;
 
 string order_start = "$ancrangestart\r\n";
 string order_stop = "$ancrangestop\r\n";
@@ -44,19 +47,19 @@ void receive_deal_func(serial::Serial& sp)
             //A0 uint:m
             anchorArray(0,0) = 0.0; 
             anchorArray(0,1) = 0.0; 
-            anchorArray(0,2) = 3.0; 
+            anchorArray(0,2) = 1.93; 
             //A1 uint:m
-            anchorArray(1,0) = 3.0; 
+            anchorArray(1,0) = 4.25; 
             anchorArray(1,1) = 0.0; 
-            anchorArray(1,2) = 2.18;
+            anchorArray(1,2) = 1.93;
             //A2 uint:m
-            anchorArray(2,0) = 3.0; 
-            anchorArray(2,1) = 1.6; 
-            anchorArray(2,2) = 2.18; 
+            anchorArray(2,0) = 4.3; 
+            anchorArray(2,1) = 3.49; 
+            anchorArray(2,2) = 1.93; 
             //A3 uint:m
             anchorArray(3,0) = 0.0; 
-            anchorArray(3,1) = 1.6; 
-            anchorArray(3,2) = 2.18; 
+            anchorArray(3,1) = 3.49; 
+            anchorArray(3,2) = 1.93; 
             //A4 uint:m
             anchorArray(4,0) = 2.0; 
             anchorArray(4,1) = 1.0; 
@@ -105,7 +108,7 @@ void receive_deal_func(serial::Serial& sp)
             return;
         }
 
-        result = GetLocation(&report, anchorArray, &range[0]);
+        result = GetLocation(&report, anchorArray, &range[0], tagposition_mode);
 
         printf("result = %d\n",result);
         printf("x = %f\n",report.x);
@@ -169,12 +172,16 @@ void receive_deal_func(serial::Serial& sp)
 
         double dist = (anchorArray - anchorArray_last).rowwise().norm().sum();
 
-        if(isSuccess && (dist < 0.1*4))
+        if(isSuccess && (dist < 0.05*4))
         {
             // 成功标定且上下两次标定的坐标偏差不超过0.1m
             isAutoposition = true;
             // 发送串口指令'$ancrangestop\r\n'，关闭基站自标定功能，开始标签定位
-            printf("Autoposition Success!!!");
+            printf("[Autoposition Success] A0:(%f, %f, %f),A1:(%f, %f, %f),A2:(%f, %f, %f),A3:(%f, %f, %f)\n",
+                anchorArray(0,0), anchorArray(0,1), anchorArray(0,2),
+                anchorArray(1,0), anchorArray(1,1), anchorArray(1,2),
+                anchorArray(2,0), anchorArray(2,1), anchorArray(2,2),
+                anchorArray(3,0), anchorArray(3,1), anchorArray(3,2));
 
             try {
                 sp.write(order_stop);
@@ -183,14 +190,11 @@ void receive_deal_func(serial::Serial& sp)
             catch (const std::exception& e) {
                 cerr << "Failed to send order_stop: " << e.what() << "\n";
             }
+            
             return;
         }
 
-        printf("[Autoposition] A0:(%f, %f, %f),A1:(%f, %f, %f),A2:(%f, %f, %f),A3:(%f, %f, %f)\n",
-                anchorArray(0,0), anchorArray(0,1), anchorArray(0,2),
-                anchorArray(1,0), anchorArray(1,1), anchorArray(1,2),
-                anchorArray(2,0), anchorArray(2,1), anchorArray(2,2),
-                anchorArray(3,0), anchorArray(3,1), anchorArray(3,2));
+
 
         return;
     }

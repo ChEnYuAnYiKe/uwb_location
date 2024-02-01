@@ -7,7 +7,7 @@ const int stationNumber = 4;
 bool isFirst = true;
 int errNum = 0;
 const int MAX_ERR_NUM = 3;
-double height = 2.0; // 给定z轴坐标
+double height = 0.55; // 给定z轴坐标
 
 Eigen::MatrixXd matrixBuff = Eigen::MatrixXd::Zero(anc_num, anc_num);
 Eigen::MatrixXd ancRangeValuesAvg = Eigen::MatrixXd::Zero(anc_num, anc_num);
@@ -37,7 +37,6 @@ bool autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
             {
                 for (int j = 0; j < anc_num; j++)
                 {
-                    printf("i:%d, j:%d, buff:%f\n", i, j, matrixBuff(i, j));
                     if(matrixBuff(i, j) != 0)
                     {
                         //数据有效，无需继续遍历。将当前aid存入receiveAID
@@ -46,7 +45,6 @@ bool autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
                     }
                 }
             }
-            printf("%d", receiveAID.size());
 
             if(receiveAID.size() == stationNumber)   //有效信号数量为设定值
             {
@@ -106,8 +104,9 @@ bool autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
                     anchorArray(int (receiveAID[i]), 1) = estCoord(i, 1);
                     anchorArray(int (receiveAID[i]), 2) = height; // 默认所有的基站都处于同一高度
                     //TODO 可以增加传感器，动态调整z轴的坐标
+                    //if (i==3) anchorArray(int (receiveAID[i]), 2) = 0.55;
                 }
-                
+
                 isFirst = false;
                 errNum = 0;
                 printf("position success!\n");
@@ -119,7 +118,7 @@ bool autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
                 errNum++;
                 if(errNum >= MAX_ERR_NUM)
                 {
-                    ROS_ERROR_STREAM("Autoposition failed!!!");
+                    ROS_ERROR_STREAM("Autoposition failed!!!\n");
                     errNum = 0;
                 }
             }
@@ -133,6 +132,7 @@ bool autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
             }
         }
         aid_last = aid;
+        return false;
     }
     return false;
 }
