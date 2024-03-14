@@ -574,7 +574,7 @@ int deca_3dlocate ( vec3d     *const solution1,
 
         if (success)
         {
-            printf("trilateration success, result = %d\n", result);
+            // printf("trilateration success, result = %d\n", result);
             switch (result)
             {
             case TRIL_3SPHERES:
@@ -736,7 +736,7 @@ int leastSquaresMethod(vec3d *best_solution, Eigen::MatrixXd anchorArray, int *d
 	/**** Check, if there are enough linear independent anchor positions ****/
 
 	/* Check, if the matrix |(x_1 - x_0) (x_2 - x_0) ... | has rank 2
-	 * 			|(y_1 - y_0) (y_2 - y_0) ... | 				*/
+	 * 			            |(y_1 - y_0) (y_2 - y_0) ... | 				*/
 
 	for (ind_y_indi = 2; ((ind_y_indi < no_valid_distances) && (lin_dep == true)); ind_y_indi++) {
 		temp = ((int64_t)anchor_pos[ind_y_indi].y - (int64_t)anchor_pos[0].y) * ((int64_t)anchor_pos[1].x -

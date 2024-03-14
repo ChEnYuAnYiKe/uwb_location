@@ -109,7 +109,6 @@ bool autopositioning(int *range, int aid, Eigen::MatrixXd& anchorArray)
 
                 isFirst = false;
                 errNum = 0;
-                printf("position success!\n");
                 return true;
             }
             else

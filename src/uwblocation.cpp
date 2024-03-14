@@ -12,7 +12,7 @@ bool isAutoposition = false;
 const bool AutopositionMode = false;
 
 // 1：使用三边定位法；2：使用最小二乘法
-const int tagposition_mode = 1;
+const int tagposition_mode = 2;
 
 string order_start = "$ancrangestart\r\n";
 string order_stop = "$ancrangestop\r\n";
