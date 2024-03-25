@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>Uwb_Location</name>
+  <name>uwb_location</name>
   <version>0.0.0</version>
   <description>The uwb_location package</description>
 

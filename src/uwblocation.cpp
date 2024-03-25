@@ -1,4 +1,4 @@
-#include "Uwb_Location/uwblocation.h"
+#include "uwb_location/uwblocation.h"
 
 using namespace std;
 
@@ -257,7 +257,7 @@ int main(int argc, char** argv)
     //创建句柄
     ros::NodeHandle nh;
     ros::NodeHandle nh1;
-    ros::Publisher uwb_publisher = nh.advertise<Uwb_Location::uwb>("/uwb/data", 1000);//发布tag的定位信息
+    ros::Publisher uwb_publisher = nh.advertise<uwb_location::uwb>("/uwb/data", 1000);//发布tag的定位信息
 
     //创建一个serial类
     serial::Serial sp;
@@ -300,7 +300,7 @@ int main(int argc, char** argv)
     }
 
     //发布uwb话题
-    Uwb_Location::uwb uwb_data;
+    uwb_location::uwb uwb_data;
 
     while(ros::ok())
     {

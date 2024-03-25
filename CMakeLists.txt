@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(Uwb_Location)
+project(uwb_location)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
@@ -43,25 +43,25 @@ include_directories(
   ${EIGEN3_INCLUDE_DIR}
 )
 
-add_library(trilateration include/Uwb_Location/trilateration.h src/trilateration.cpp)
+add_library(trilateration include/uwb_location/trilateration.h src/trilateration.cpp)
 add_dependencies(trilateration ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(trilateration
          ${EIGEN3_LIBS}
          ${catkin_LIBRARIES})
 
-add_library(autoposition include/Uwb_Location/autoposition.h src/autoposition.cpp)
+add_library(autoposition include/uwb_location/autoposition.h src/autoposition.cpp)
 add_dependencies(autoposition ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(autoposition
         ${EIGEN3_LIBS}
         ${catkin_LIBRARIES})
         
-add_library(uwblocation include/Uwb_Location/uwblocation.h src/uwblocation.cpp)
+add_library(uwblocation include/uwb_location/uwblocation.h src/uwblocation.cpp)
 add_dependencies(uwblocation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(uwblocation
         ${EIGEN3_LIBS}
         ${catkin_LIBRARIES})        
 
-add_executable(UwbLocation src/uwblocation.cpp src/trilateration.cpp src/autoposition.cpp)
-add_dependencies(UwbLocation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(UwbLocation
+add_executable(uwblocating src/uwblocation.cpp src/trilateration.cpp src/autoposition.cpp)
+add_dependencies(uwblocating ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(uwblocating
         ${catkin_LIBRARIES})

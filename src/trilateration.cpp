@@ -16,7 +16,7 @@
 #include "stdlib.h"
 #include "time.h"
 
-#include "Uwb_Location/trilateration.h"
+#include "uwb_location/trilateration.h"
 #include "iostream"
 using namespace std;
 
