@@ -7,7 +7,7 @@ const int stationNumber = 4;
 bool isFirst = true;
 int errNum = 0;
 const int MAX_ERR_NUM = 3;
-double height = 0.55; // 给定z轴坐标
+double height = 0.4; // 给定z轴坐标
 
 Eigen::MatrixXd matrixBuff = Eigen::MatrixXd::Zero(anc_num, anc_num);
 Eigen::MatrixXd ancRangeValuesAvg = Eigen::MatrixXd::Zero(anc_num, anc_num);

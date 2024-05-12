@@ -2,7 +2,7 @@
 
 using namespace std;
 
-unsigned char receive_buf[300] = {0};
+unsigned char receive_buf[3000] = {0};
 vec3d report;
 Eigen::MatrixXd anchorArray = Eigen::MatrixXd::Zero(8, 3);
 Eigen::MatrixXd anchorArray_last = Eigen::MatrixXd::Zero(8, 3);
@@ -12,7 +12,7 @@ bool isAutoposition = false;
 const bool AutopositionMode = false;
 
 // 1：使用三边定位法；2：使用最小二乘法
-const int tagposition_mode = 2;
+const int tagposition_mode = 1;
 
 string order_start = "$ancrangestart\r\n";
 string order_stop = "$ancrangestop\r\n";
@@ -264,7 +264,7 @@ int main(int argc, char** argv)
     //创建timeout
     serial::Timeout to = serial::Timeout::simpleTimeout(11);
     //设置要打开的串口名称
-    sp.setPort("/dev/ttyUSB0");
+    sp.setPort("/dev/usb_uwb");
     //设置串口通信的波特率
     sp.setBaudrate(115200);
     //串口设置timeout
@@ -282,7 +282,7 @@ int main(int argc, char** argv)
     //判断串口是否打开成功
     if(sp.isOpen())
     {
-        ROS_INFO_STREAM("/dev/ttyUSB0 is opened.");
+        ROS_INFO_STREAM("/dev/usb_uwb is opened.");
     }
     else
     {
