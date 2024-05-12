@@ -9,7 +9,7 @@ Eigen::MatrixXd anchorArray_last = Eigen::MatrixXd::Zero(8, 3);
 int result = 0; 
 int tag_posi_success_cnt = 0; // 成功定位计数器
 bool isAutoposition = false;
-const bool AutopositionMode = false;
+const bool AutopositionMode = true;
 
 // 1：使用三边定位法；2：使用最小二乘法
 const int tagposition_mode = 1;
@@ -115,17 +115,17 @@ void receive_deal_func(serial::Serial& sp)
         printf("y = %f\n",report.y);
         printf("z = %f\n",report.z);
 
-        if(result > 0)
-        {
-            tag_posi_success_cnt++;
-        }  
+        // if(result > 0)
+        // {
+        //     tag_posi_success_cnt++;
+        // }  
 
         // tag定位成功5次后，则让上一次的基站自标定坐标失效，重新标定
-        if(tag_posi_success_cnt == 5)
-        {
-            tag_posi_success_cnt = 0;
-            isAutoposition = false; 
-        }
+        // if(tag_posi_success_cnt == 5)
+        // {
+        //     tag_posi_success_cnt = 0;
+        //     isAutoposition = false; 
+        // }
 
         return;
     }
@@ -174,7 +174,7 @@ void receive_deal_func(serial::Serial& sp)
 
         if(isSuccess && (dist < 0.05*4))
         {
-            // 成功标定且上下两次标定的坐标偏差不超过0.1m
+            // 成功标定且上下两次标定的坐标偏差不超过0.05m
             isAutoposition = true;
             // 发送串口指令'$ancrangestop\r\n'，关闭基站自标定功能，开始标签定位
             printf("[Autoposition Success] A0:(%f, %f, %f),A1:(%f, %f, %f),A2:(%f, %f, %f),A3:(%f, %f, %f)\n",
@@ -291,12 +291,15 @@ int main(int argc, char** argv)
     
     //ros::Rate loop_rate(11);
 
-    try {
-        sp.write(order_start);
-        std::cout << "Data sent successfully!\n";
-    } 
-    catch (const std::exception& e) {
-        std::cerr << "Failed to send data: " << e.what() << "\n";
+    if(AutopositionMode)
+    {
+        try {
+            sp.write(order_start);
+            std::cout << "order_start sent successfully!\n";
+        } 
+        catch (const std::exception& e) {
+            std::cerr << "Failed to send data: " << e.what() << "\n";
+     }
     }
 
     //发布uwb话题
