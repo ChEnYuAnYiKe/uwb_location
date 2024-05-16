@@ -22,6 +22,20 @@ int BufCtrlPosit_w = 0;
 int BufCtrlPosit_r = 0;
 int DataRecord=0, rcvsign = 0;
 
+Eigen::MatrixXd anchorArray = Eigen::MatrixXd::Zero(8, 3);
+Eigen::MatrixXd anchorArray_last = Eigen::MatrixXd::Zero(8, 3);
+
+// 是否开启自标定模式
+bool AutopositionMode;
+// 标签定位算法：1 使用三边定位法；2 使用最小二乘法
+int TagpositionMode;
+
+std::string order_start = "$ancrangestart\r\n";
+std::string order_stop = "$ancrangestop\r\n";
+
+// 输出的位置变量
+vec3d report;
+
 void receive_deal_func(serial::Serial& sp);
 
 void CtrlSerDataDeal(serial::Serial& sp);

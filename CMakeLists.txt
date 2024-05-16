@@ -43,25 +43,42 @@ include_directories(
   ${EIGEN3_INCLUDE_DIR}
 )
 
-add_library(trilateration include/uwb_location/trilateration.h src/trilateration.cpp)
-add_dependencies(trilateration ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(trilateration
-         ${EIGEN3_LIBS}
-         ${catkin_LIBRARIES})
+add_library(uwb_location_lib
+  src/trilateration.cpp
+  src/autoposition.cpp
+  src/uwblocation.cpp
+)
 
-add_library(autoposition include/uwb_location/autoposition.h src/autoposition.cpp)
-add_dependencies(autoposition ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(autoposition
-        ${EIGEN3_LIBS}
-        ${catkin_LIBRARIES})
-        
-add_library(uwblocation include/uwb_location/uwblocation.h src/uwblocation.cpp)
-add_dependencies(uwblocation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(uwblocation
-        ${EIGEN3_LIBS}
-        ${catkin_LIBRARIES})        
+target_link_libraries(uwb_location_lib
+  ${catkin_LIBRARIES}
+  ${EIGEN3_LIBS}
+)
 
-add_executable(uwblocating src/uwblocation.cpp src/trilateration.cpp src/autoposition.cpp)
-add_dependencies(uwblocating ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(uwblocating src/uwblocation.cpp)
 target_link_libraries(uwblocating
-        ${catkin_LIBRARIES})
+  uwb_location_lib
+  ${catkin_LIBRARIES}
+)
+
+# add_library(trilateration include/uwb_location/trilateration.h src/trilateration.cpp)
+# add_dependencies(trilateration ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(trilateration
+#          ${EIGEN3_LIBS}
+#          ${catkin_LIBRARIES})
+
+# add_library(autoposition include/uwb_location/autoposition.h src/autoposition.cpp)
+# add_dependencies(autoposition ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(autoposition
+#         ${EIGEN3_LIBS}
+#         ${catkin_LIBRARIES})
+        
+# add_library(uwblocation include/uwb_location/uwblocation.h src/uwblocation.cpp)
+# add_dependencies(uwblocation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(uwblocation
+#         ${EIGEN3_LIBS}
+#         ${catkin_LIBRARIES})        
+
+# add_executable(uwblocating src/uwblocation.cpp src/trilateration.cpp src/autoposition.cpp)
+# add_dependencies(uwblocating ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(uwblocating
+#         ${catkin_LIBRARIES})

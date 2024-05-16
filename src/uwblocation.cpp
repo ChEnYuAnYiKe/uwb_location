@@ -1,21 +1,9 @@
 #include "uwb_location/uwblocation.h"
 
-using namespace std;
-
 unsigned char receive_buf[3000] = {0};
-vec3d report;
-Eigen::MatrixXd anchorArray = Eigen::MatrixXd::Zero(8, 3);
-Eigen::MatrixXd anchorArray_last = Eigen::MatrixXd::Zero(8, 3);
-int result = 0; 
-int tag_posi_success_cnt = 0; // 成功定位计数器
+
+int result = 0;  
 bool isAutoposition = false;
-const bool AutopositionMode = true;
-
-// 1：使用三边定位法；2：使用最小二乘法
-const int tagposition_mode = 1;
-
-string order_start = "$ancrangestart\r\n";
-string order_stop = "$ancrangestop\r\n";
 
 void receive_deal_func(serial::Serial& sp)
 {
@@ -30,16 +18,16 @@ void receive_deal_func(serial::Serial& sp)
             if(!isAutoposition)
             {   
                 ROS_ERROR_STREAM("Using Autoposition Mode, but haven't autoposition yet!");
-                // 发送串口指令'$ancrangestart\r\n'，打开基站自标定功能
                 try {
                     sp.write(order_start);
-                    cout << "order_start sent successfully!\n";
+                    std::cout << "order_start sent successfully!\n";
                 } 
                 catch (const std::exception& e) {
-                    cerr << "Failed to send order_start: " << e.what() << "\n";
+                    std::cerr << "Failed to send order_start: " << e.what() << "\n";
                 }
                 return;
             }
+            //TODO 当基站位置改动时，可以在这边拉取获得当前的基站位置
         }
         else
         {
@@ -47,19 +35,20 @@ void receive_deal_func(serial::Serial& sp)
             //A0 uint:m
             anchorArray(0,0) = 0.0; 
             anchorArray(0,1) = 0.0; 
-            anchorArray(0,2) = 1.93; 
+            anchorArray(0,2) = 0.2; 
             //A1 uint:m
-            anchorArray(1,0) = 4.25; 
+            anchorArray(1,0) = 6.54; 
             anchorArray(1,1) = 0.0; 
-            anchorArray(1,2) = 1.93;
+            anchorArray(1,2) = 0.2;
             //A2 uint:m
-            anchorArray(2,0) = 4.3; 
-            anchorArray(2,1) = 3.49; 
-            anchorArray(2,2) = 1.93; 
+            anchorArray(2,0) = 6.71; 
+            anchorArray(2,1) = 6.80; 
+            anchorArray(2,2) = 0.2; 
             //A3 uint:m
-            anchorArray(3,0) = 0.0; 
-            anchorArray(3,1) = 3.49; 
-            anchorArray(3,2) = 1.93; 
+            anchorArray(3,0) = -0.06; 
+            anchorArray(3,1) = 6.72; 
+            anchorArray(3,2) = 0.2; 
+
             //A4 uint:m
             anchorArray(4,0) = 2.0; 
             anchorArray(4,1) = 1.0; 
@@ -108,24 +97,12 @@ void receive_deal_func(serial::Serial& sp)
             return;
         }
 
-        result = GetLocation(&report, anchorArray, &range[0], tagposition_mode);
+        result = GetLocation(&report, anchorArray, &range[0], TagpositionMode);
 
         printf("result = %d\n",result);
         printf("x = %f\n",report.x);
         printf("y = %f\n",report.y);
         printf("z = %f\n",report.z);
-
-        // if(result > 0)
-        // {
-        //     tag_posi_success_cnt++;
-        // }  
-
-        // tag定位成功5次后，则让上一次的基站自标定坐标失效，重新标定
-        // if(tag_posi_success_cnt == 5)
-        // {
-        //     tag_posi_success_cnt = 0;
-        //     isAutoposition = false; 
-        // }
 
         return;
     }
@@ -177,7 +154,8 @@ void receive_deal_func(serial::Serial& sp)
             // 成功标定且上下两次标定的坐标偏差不超过0.05m
             isAutoposition = true;
             // 发送串口指令'$ancrangestop\r\n'，关闭基站自标定功能，开始标签定位
-            printf("[Autoposition Success] A0:(%f, %f, %f),A1:(%f, %f, %f),A2:(%f, %f, %f),A3:(%f, %f, %f)\n",
+            ROS_WARN_STREAM("Self-calibration Succeed!");
+            printf("A0:(%f, %f, %f),A1:(%f, %f, %f),A2:(%f, %f, %f),A3:(%f, %f, %f)\n",
                 anchorArray(0,0), anchorArray(0,1), anchorArray(0,2),
                 anchorArray(1,0), anchorArray(1,1), anchorArray(1,2),
                 anchorArray(2,0), anchorArray(2,1), anchorArray(2,2),
@@ -185,17 +163,14 @@ void receive_deal_func(serial::Serial& sp)
 
             try {
                 sp.write(order_stop);
-                cout << "order_stop sent successfully!\n";
+                std::cout << "order_stop sent successfully!\n";
             } 
             catch (const std::exception& e) {
-                cerr << "Failed to send order_stop: " << e.what() << "\n";
+                std::cerr << "Failed to send order_stop: " << e.what() << "\n";
             }
             
             return;
         }
-
-
-
         return;
     }
     else
@@ -269,6 +244,10 @@ int main(int argc, char** argv)
     sp.setBaudrate(115200);
     //串口设置timeout
     sp.setTimeout(to);
+
+    // Load configs.
+    nh.param("AutopositionMode",   AutopositionMode, true);
+    nh.param("TagpositionMode",    TagpositionMode, 1);
 
     try{
         //打开串口
