@@ -282,6 +282,7 @@ int main(int argc, char** argv) {
 	// ros::Rate loop_rate(11);
 
 	if (AutopositionMode == 1) {
+		std::cout << "AutopositionMode == 1!" << std::endl;
 		try {
 			sp.write(order_start);
 			std::cout << "order_start sent successfully!\n";
@@ -297,7 +298,11 @@ int main(int argc, char** argv) {
 		    nh.subscribe(anchor3_pos_topic, 10, anchor3_pos_callback);
 		anchor4_pos_sub =
 		    nh.subscribe(anchor4_pos_topic, 10, anchor4_pos_callback);
+		std::cout << "AutopositionMode == 2!" << std::endl;
 		std::cout << "Subsribed to 4 anchors' positon topic!" << std::endl;
+	} else if (AutopositionMode == 0) {
+		std::cout << "AutopositionMode == 0!" << std::endl;
+		std::cout << "Using fixed anchor position!" << std::endl;
 	}
 
 	// 发布uwb话题
