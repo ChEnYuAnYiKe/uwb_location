@@ -11,7 +11,7 @@ void receive_deal_func(serial::Serial& sp) {
 
 	//  'mc' tag to anchor range bias corrected ranges – used for tag location
 	if ((receive_buf[0] == 'm') && (receive_buf[1] == 'c')) {
-		if (AutopositionMode) {
+		if (AutopositionMode == 1) {
 			if (!isAutoposition) {
 				ROS_ERROR_STREAM(
 				    "Using Autoposition Mode, but haven't autoposition yet!");
@@ -24,9 +24,8 @@ void receive_deal_func(serial::Serial& sp) {
 				}
 				return;
 			}
-			// TODO 当基站位置改动时，可以在这边拉取获得当前的基站位置
-		} else {
-			// 使用手动基站标定，则在下面更改标定坐标
+		} else if (AutopositionMode == 0) {
+			// 手动基站标定，若基站位置修改则在下面更改标定坐标
 			// A0 uint:m
 			anchorArray(0, 0) = 0.0;
 			anchorArray(0, 1) = 0.0;
@@ -199,6 +198,34 @@ void CtrlSerDataDeal(serial::Serial& sp) {
 	}
 }
 
+void anchor1_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+	geometry_msgs::PoseStamped current_vrpn = *msg;
+	anchorArray(0, 0) = current_vrpn.pose.position.x;
+	anchorArray(0, 1) = current_vrpn.pose.position.y;
+	anchorArray(0, 2) = current_vrpn.pose.position.z + 0.15;
+}
+
+void anchor2_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+	geometry_msgs::PoseStamped current_vrpn = *msg;
+	anchorArray(1, 0) = current_vrpn.pose.position.x;
+	anchorArray(1, 1) = current_vrpn.pose.position.y;
+	anchorArray(1, 2) = current_vrpn.pose.position.z + 0.15;
+}
+
+void anchor3_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+	geometry_msgs::PoseStamped current_vrpn = *msg;
+	anchorArray(2, 0) = current_vrpn.pose.position.x;
+	anchorArray(2, 1) = current_vrpn.pose.position.y;
+	anchorArray(2, 2) = current_vrpn.pose.position.z + 0.15;
+}
+
+void anchor4_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+	geometry_msgs::PoseStamped current_vrpn = *msg;
+	anchorArray(3, 0) = current_vrpn.pose.position.x;
+	anchorArray(3, 1) = current_vrpn.pose.position.y;
+	anchorArray(3, 2) = current_vrpn.pose.position.z + 0.15;
+}
+
 int main(int argc, char** argv) {
 	setlocale(LC_ALL, "");
 	std_msgs::String msg;
@@ -211,7 +238,7 @@ int main(int argc, char** argv) {
 	ros::NodeHandle nh;
 	ros::NodeHandle nh1;
 	ros::Publisher uwb_publisher =
-	    nh.advertise<uwb_location::uwb>("/uwb/data", 1000); // 发布tag的定位信息
+	    nh.advertise<uwb_location::uwb>("/uwb/data", 100); // 发布tag的定位信息
 
 	// 创建一个serial类
 	serial::Serial sp;
@@ -225,8 +252,17 @@ int main(int argc, char** argv) {
 	sp.setTimeout(to);
 
 	// Load configs.
-	nh.param("AutopositionMode", AutopositionMode, true);
+	nh.param("AutopositionMode", AutopositionMode, 0);
 	nh.param("TagpositionMode", TagpositionMode, 1);
+
+	std::string anchor1_pos_topic;
+	std::string anchor2_pos_topic;
+	std::string anchor3_pos_topic;
+	std::string anchor4_pos_topic;
+	nh.param("anchor1_pos", anchor1_pos_topic);
+	nh.param("anchor2_pos", anchor2_pos_topic);
+	nh.param("anchor3_pos", anchor3_pos_topic);
+	nh.param("anchor4_pos", anchor4_pos_topic);
 
 	try {
 		// 打开串口
@@ -245,13 +281,23 @@ int main(int argc, char** argv) {
 
 	// ros::Rate loop_rate(11);
 
-	if (AutopositionMode) {
+	if (AutopositionMode == 1) {
 		try {
 			sp.write(order_start);
 			std::cout << "order_start sent successfully!\n";
 		} catch (const std::exception& e) {
 			std::cerr << "Failed to send data: " << e.what() << "\n";
 		}
+	} else if (AutopositionMode == 2) {
+		anchor1_pos_sub =
+		    nh.subscribe(anchor1_pos_topic, 10, anchor1_pos_callback);
+		anchor2_pos_sub =
+		    nh.subscribe(anchor2_pos_topic, 10, anchor2_pos_callback);
+		anchor3_pos_sub =
+		    nh.subscribe(anchor3_pos_topic, 10, anchor3_pos_callback);
+		anchor4_pos_sub =
+		    nh.subscribe(anchor4_pos_topic, 10, anchor4_pos_callback);
+		std::cout << "Subsribed to 4 anchors' positon topic!" << std::endl;
 	}
 
 	// 发布uwb话题
