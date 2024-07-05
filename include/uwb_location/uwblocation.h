@@ -10,6 +10,7 @@
 #include <serial/serial.h>
 #include <string.h>
 #include <string>
+#include <boost/thread/shared_mutex.hpp> // 引入 Boost 的 shared_mutex
 
 #define MAX_DATA_NUM 1024 // 传消息内容最大长度
 #define DataHead 'm'
@@ -49,6 +50,8 @@ private:
 
     Eigen::MatrixXd anchorArray;
     Eigen::MatrixXd anchorArray_last;
+
+    boost::shared_mutex anchorArrayMutex_; // Boost 的 shared_mutex
 
     std::string order_start;
     std::string order_stop;

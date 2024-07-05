@@ -171,9 +171,12 @@ void uwbPositionSystem::receive_deal_func(serial::Serial &sp)
 			return;
 		}
 
-		result = GetLocation(&report, anchorArray, &range[0], TagpositionMode);
-
-		uwbPositionSystem::array_pub_wrapper(anchorArray);
+		{		
+			boost::shared_lock<boost::shared_mutex> lock(anchorArrayMutex_); // 加读锁
+			
+			result = GetLocation(&report, anchorArray, &range[0], TagpositionMode);
+			uwbPositionSystem::array_pub_wrapper(anchorArray);
+		}
 
 		printf("result = %d\n", result);
 		printf("x = %f ", report.x);
@@ -326,6 +329,7 @@ void uwbPositionSystem::processSerialData(serial::Serial& sp)
 
 void uwbPositionSystem::anchor1_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_); // 加写锁
 	geometry_msgs::PoseStamped current_vrpn_1 = *msg;
 	anchorArray(0, 0) = current_vrpn_1.pose.position.x;
 	anchorArray(0, 1) = current_vrpn_1.pose.position.y;
@@ -334,6 +338,7 @@ void uwbPositionSystem::anchor1_pos_callback(const geometry_msgs::PoseStamped::C
 
 void uwbPositionSystem::anchor2_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_); // 加写锁
 	geometry_msgs::PoseStamped current_vrpn_2 = *msg;
 	anchorArray(1, 0) = current_vrpn_2.pose.position.x;
 	anchorArray(1, 1) = current_vrpn_2.pose.position.y;
@@ -342,6 +347,7 @@ void uwbPositionSystem::anchor2_pos_callback(const geometry_msgs::PoseStamped::C
 
 void uwbPositionSystem::anchor3_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_); // 加写锁
 	geometry_msgs::PoseStamped current_vrpn_3 = *msg;
 	anchorArray(2, 0) = current_vrpn_3.pose.position.x;
 	anchorArray(2, 1) = current_vrpn_3.pose.position.y;
@@ -350,6 +356,7 @@ void uwbPositionSystem::anchor3_pos_callback(const geometry_msgs::PoseStamped::C
 
 void uwbPositionSystem::anchor4_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_); // 加写锁
 	geometry_msgs::PoseStamped current_vrpn_4 = *msg;
 	anchorArray(3, 0) = current_vrpn_4.pose.position.x;
 	anchorArray(3, 1) = current_vrpn_4.pose.position.y;
