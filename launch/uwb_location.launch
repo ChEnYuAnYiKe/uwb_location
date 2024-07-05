@@ -1,13 +1,13 @@
 <launch>
     <node name="uwb_location_node" pkg="uwb_location" type="uwblocating" output="screen">
         <!-- 0_fixed_anchor_pos, 1_auto_position, 2_moving_anchors -->
-        <param name="AutopositionMode" type="int" value="0" />
+        <param name="AutopositionMode" type="int" value="2" />
         <!-- 1_trilaterationMethod, 2_leastSquaresMethod -->
-        <param name="TagpositionMode" type="int" value="1" />
+        <param name="TagpositionMode" type="int" value="2" />
 
-        <param name="anchor1_pos" value="/vrpn_client_node/tb1/pose" />
-        <param name="anchor2_pos" value="/vrpn_client_node/tb2/pose" />
-        <param name="anchor3_pos" value="/vrpn_client_node/tb3/pose" />
-        <param name="anchor4_pos" value="/vrpn_client_node/tb4/pose" />
+        <param name="anchor1_pos" value="/vrpn_client_node/tb0/pose" />
+        <param name="anchor2_pos" value="/vrpn_client_node/tb1/pose" />
+        <param name="anchor3_pos" value="/vrpn_client_node/tb2/pose" />
+        <param name="anchor4_pos" value="/vrpn_client_node/tb3/pose" />
     </node>
 </launch>
