@@ -1,11 +1,116 @@
 #include "uwb_location/uwblocation.h"
 
-unsigned char receive_buf[3000] = {0};
+uwbPositionSystem::uwbPositionSystem(ros::NodeHandle &nh, serial::Serial& sp)
+{
+	isAutoposition = false;
+	result = 0;
+	order_start = "$ancrangestart\r\n";
+	order_stop = "$ancrangestop\r\n";
 
-int result = 0;
-bool isAutoposition = false;
+	receive_buf[3000] = {0};
+	BufCtrlPosit_w = 0;
+	BufCtrlPosit_r = 0;
 
-void receive_deal_func(serial::Serial &sp)
+	DataRecord = 0;
+	rcvsign = 0;
+
+	anchorArray = Eigen::MatrixXd::Zero(8, 3);
+	anchorArray_last = Eigen::MatrixXd::Zero(8, 3);
+
+	// Load configs.
+	nh.param("AutopositionMode", AutopositionMode, 0);
+	nh.param("TagpositionMode", TagpositionMode, 1);
+	nh.param("anchor1_pos", anchor1_pos_topic);
+	nh.param("anchor2_pos", anchor2_pos_topic);
+	nh.param("anchor3_pos", anchor3_pos_topic);
+	nh.param("anchor4_pos", anchor4_pos_topic);
+
+	uwb_publisher = nh.advertise<uwb_location::uwb>("/uwb/data", 100); // 发布tag的定位信息
+
+	if (AutopositionMode == 0)
+	{
+		// 手动基站标定，若基站位置修改则在下面更改标定坐标
+		// A0 uint:m
+		anchorArray(0, 0) = 0.0;
+		anchorArray(0, 1) = 0.0;
+		anchorArray(0, 2) = 0.2;
+		// A1 uint:m
+		anchorArray(1, 0) = 6.54;
+		anchorArray(1, 1) = 0.0;
+		anchorArray(1, 2) = 0.2;
+		// A2 uint:m
+		anchorArray(2, 0) = 6.71;
+		anchorArray(2, 1) = 6.80;
+		anchorArray(2, 2) = 0.2;
+		// A3 uint:m
+		anchorArray(3, 0) = -0.06;
+		anchorArray(3, 1) = 6.72;
+		anchorArray(3, 2) = 0.2;
+		// A4 uint:m
+		anchorArray(4, 0) = 0;
+		anchorArray(4, 1) = 0;
+		anchorArray(4, 2) = 0;
+		// A5 uint:m
+		anchorArray(5, 0) = 0;
+		anchorArray(5, 1) = 0;
+		anchorArray(5, 2) = 0;
+		// A6 uint:m
+		anchorArray(6, 0) = 0;
+		anchorArray(6, 1) = 0;
+		anchorArray(6, 2) = 0;
+		// A7 uint:m
+		anchorArray(7, 0) = 0;
+		anchorArray(7, 1) = 0;
+		anchorArray(7, 2) = 0;
+
+		ROS_INFO_STREAM("AutopositionMode == 0! Using fixed anchor position!");
+
+		ros::Duration(0.5).sleep();
+	}
+	else if (AutopositionMode == 1)
+	{
+		ROS_INFO_STREAM("AutopositionMode == 1!");
+		try
+		{
+			sp.write(order_start);
+			ROS_INFO_STREAM("order_start sent successfully!");
+		}
+		catch (const std::exception &e)
+		{
+			std::cerr << "Failed to send data: " << e.what() << "\n";
+		}
+	}
+	else if (AutopositionMode == 2)
+	{
+		anchor1_pos_sub =
+			nh.subscribe(anchor1_pos_topic, 100, &uwbPositionSystem::anchor1_pos_callback, this);
+		anchor2_pos_sub =
+			nh.subscribe(anchor2_pos_topic, 100, &uwbPositionSystem::anchor2_pos_callback, this);
+		anchor3_pos_sub =
+			nh.subscribe(anchor3_pos_topic, 100, &uwbPositionSystem::anchor3_pos_callback, this);
+		anchor4_pos_sub =
+			nh.subscribe(anchor4_pos_topic, 100, &uwbPositionSystem::anchor4_pos_callback, this);
+
+		// debug
+		array_row1_pub = nh.advertise<geometry_msgs::PoseStamped>("/anchorArray/row1", 10);
+		array_row2_pub = nh.advertise<geometry_msgs::PoseStamped>("/anchorArray/row2", 10);
+		array_row3_pub = nh.advertise<geometry_msgs::PoseStamped>("/anchorArray/row3", 10);
+		array_row4_pub = nh.advertise<geometry_msgs::PoseStamped>("/anchorArray/row4", 10);
+
+		ROS_INFO_STREAM("AutopositionMode == 2! Subscribed to 4 anchors' positon topic!");
+
+		ros::Duration(0.5).sleep();
+	} else
+	{
+		ROS_WARN_STREAM("Undefined AutopositionMode!");
+	}
+}
+
+uwbPositionSystem::~uwbPositionSystem(){
+}
+
+
+void uwbPositionSystem::receive_deal_func(serial::Serial &sp)
 {
 	// 初始化距离
 	int range[8] = {-1};
@@ -31,43 +136,6 @@ void receive_deal_func(serial::Serial &sp)
 				}
 				return;
 			}
-		}
-		else if (AutopositionMode == 0)
-		{
-			// 手动基站标定，若基站位置修改则在下面更改标定坐标
-			// A0 uint:m
-			anchorArray(0, 0) = 0.0;
-			anchorArray(0, 1) = 0.0;
-			anchorArray(0, 2) = 0.2;
-			// A1 uint:m
-			anchorArray(1, 0) = 6.54;
-			anchorArray(1, 1) = 0.0;
-			anchorArray(1, 2) = 0.2;
-			// A2 uint:m
-			anchorArray(2, 0) = 6.71;
-			anchorArray(2, 1) = 6.80;
-			anchorArray(2, 2) = 0.2;
-			// A3 uint:m
-			anchorArray(3, 0) = -0.06;
-			anchorArray(3, 1) = 6.72;
-			anchorArray(3, 2) = 0.2;
-
-			// A4 uint:m
-			anchorArray(4, 0) = 2.0;
-			anchorArray(4, 1) = 1.0;
-			anchorArray(4, 2) = 2.5;
-			// A5 uint:m
-			anchorArray(5, 0) = 2.0;
-			anchorArray(5, 1) = 0.0;
-			anchorArray(5, 2) = 2.5;
-			// A6 uint:m
-			anchorArray(6, 0) = 3.0;
-			anchorArray(6, 1) = 1.0;
-			anchorArray(6, 2) = 2.5;
-			// A7 uint:m
-			anchorArray(7, 0) = 3.0;
-			anchorArray(7, 1) = 0.0;
-			anchorArray(7, 2) = 2.5;
 		}
 
 		int aid, tid, lnum, seq, mask;
@@ -105,9 +173,11 @@ void receive_deal_func(serial::Serial &sp)
 
 		result = GetLocation(&report, anchorArray, &range[0], TagpositionMode);
 
+		uwbPositionSystem::array_pub_wrapper(anchorArray);
+
 		printf("result = %d\n", result);
-		printf("x = %f\n", report.x);
-		printf("y = %f\n", report.y);
+		printf("x = %f ", report.x);
+		printf("y = %f ", report.y);
 		printf("z = %f\n", report.z);
 
 		return;
@@ -189,7 +259,7 @@ void receive_deal_func(serial::Serial &sp)
 	}
 }
 
-void CtrlSerDataDeal(serial::Serial &sp)
+void uwbPositionSystem::CtrlSerDataDeal(serial::Serial &sp)
 {
 	unsigned char middata = 0;
 	static unsigned char dataTmp[MAX_DATA_NUM] = {0};
@@ -200,8 +270,7 @@ void CtrlSerDataDeal(serial::Serial &sp)
 		BufCtrlPosit_r =
 			(BufCtrlPosit_r == MAX_DATA_NUM - 1) ? 0 : (BufCtrlPosit_r + 1);
 
-		if (((middata == DataHead) || (middata == DataHead2)) &&
-			(rcvsign == 0)) // 收到头
+		if (((middata == DataHead) || (middata == DataHead2)) && (rcvsign == 0)) // 收到头
 		{
 			rcvsign = 1;					 // 开始了一个数据帧
 			dataTmp[DataRecord++] = middata; // 数据帧接收中
@@ -229,36 +298,93 @@ void CtrlSerDataDeal(serial::Serial &sp)
 	}
 }
 
-void anchor1_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
+void uwbPositionSystem::processSerialData(serial::Serial& sp)
 {
-	geometry_msgs::PoseStamped current_vrpn = *msg;
-	anchorArray(0, 0) = current_vrpn.pose.position.x;
-	anchorArray(0, 1) = current_vrpn.pose.position.y;
-	anchorArray(0, 2) = current_vrpn.pose.position.z + 0.15;
+	size_t len = sp.available();
+	unsigned char usart_buf[1024] = {0};
+	sp.read(usart_buf, len);
+
+	unsigned char *pbuf;
+	unsigned char buf[2014] = {0};
+
+	pbuf = (unsigned char *)usart_buf;
+	memcpy(&buf[0], pbuf, len);
+
+	int reallength = len;
+	int i;
+	if (reallength != 0)
+	{
+		for (i = 0; i < reallength; i++)
+		{
+			BufDataFromCtrl[BufCtrlPosit_w] = buf[i];
+
+			BufCtrlPosit_w = (BufCtrlPosit_w == (MAX_DATA_NUM - 1))
+									? 0 : (1 + BufCtrlPosit_w);
+		}
+	}
 }
 
-void anchor2_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
+void uwbPositionSystem::anchor1_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
-	geometry_msgs::PoseStamped current_vrpn = *msg;
-	anchorArray(1, 0) = current_vrpn.pose.position.x;
-	anchorArray(1, 1) = current_vrpn.pose.position.y;
-	anchorArray(1, 2) = current_vrpn.pose.position.z + 0.15;
+	geometry_msgs::PoseStamped current_vrpn_1 = *msg;
+	anchorArray(0, 0) = current_vrpn_1.pose.position.x;
+	anchorArray(0, 1) = current_vrpn_1.pose.position.y;
+	anchorArray(0, 2) = current_vrpn_1.pose.position.z;
 }
 
-void anchor3_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
+void uwbPositionSystem::anchor2_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
-	geometry_msgs::PoseStamped current_vrpn = *msg;
-	anchorArray(2, 0) = current_vrpn.pose.position.x;
-	anchorArray(2, 1) = current_vrpn.pose.position.y;
-	anchorArray(2, 2) = current_vrpn.pose.position.z + 0.15;
+	geometry_msgs::PoseStamped current_vrpn_2 = *msg;
+	anchorArray(1, 0) = current_vrpn_2.pose.position.x;
+	anchorArray(1, 1) = current_vrpn_2.pose.position.y;
+	anchorArray(1, 2) = current_vrpn_2.pose.position.z;
 }
 
-void anchor4_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
+void uwbPositionSystem::anchor3_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
-	geometry_msgs::PoseStamped current_vrpn = *msg;
-	anchorArray(3, 0) = current_vrpn.pose.position.x;
-	anchorArray(3, 1) = current_vrpn.pose.position.y;
-	anchorArray(3, 2) = current_vrpn.pose.position.z + 0.15;
+	geometry_msgs::PoseStamped current_vrpn_3 = *msg;
+	anchorArray(2, 0) = current_vrpn_3.pose.position.x;
+	anchorArray(2, 1) = current_vrpn_3.pose.position.y;
+	anchorArray(2, 2) = current_vrpn_3.pose.position.z;
+}
+
+void uwbPositionSystem::anchor4_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
+{
+	geometry_msgs::PoseStamped current_vrpn_4 = *msg;
+	anchorArray(3, 0) = current_vrpn_4.pose.position.x;
+	anchorArray(3, 1) = current_vrpn_4.pose.position.y;
+	anchorArray(3, 2) = current_vrpn_4.pose.position.z;
+}
+
+void uwbPositionSystem::array_pub_wrapper(Eigen::MatrixXd& anchorArray)
+{
+	array_row1.header.frame_id = "global";
+	array_row1.header.stamp = ros::Time::now();
+	array_row1.pose.position.x = anchorArray(0, 0);
+	array_row1.pose.position.y = anchorArray(0, 1);
+	array_row1.pose.position.z = anchorArray(0, 2);
+	array_row1_pub.publish(array_row1);
+
+	array_row2.header.frame_id = "global";
+	array_row2.header.stamp = ros::Time::now();
+	array_row2.pose.position.x = anchorArray(1, 0);
+	array_row2.pose.position.y = anchorArray(1, 1);
+	array_row2.pose.position.z = anchorArray(1, 2);
+	array_row2_pub.publish(array_row2);
+
+	array_row3.header.frame_id = "global";
+	array_row3.header.stamp = ros::Time::now();
+	array_row3.pose.position.x = anchorArray(2, 0);
+	array_row3.pose.position.y = anchorArray(2, 1);
+	array_row3.pose.position.z = anchorArray(2, 2);
+	array_row3_pub.publish(array_row3);
+
+	array_row4.header.frame_id = "global";
+	array_row4.header.stamp = ros::Time::now();
+	array_row4.pose.position.x = anchorArray(3, 0);
+	array_row4.pose.position.y = anchorArray(3, 1);
+	array_row4.pose.position.z = anchorArray(3, 2);
+	array_row4_pub.publish(array_row4);
 }
 
 int main(int argc, char **argv)
@@ -273,8 +399,6 @@ int main(int argc, char **argv)
 	// 创建句柄
 	ros::NodeHandle nh;
 	ros::NodeHandle nh1;
-	ros::Publisher uwb_publisher =
-		nh.advertise<uwb_location::uwb>("/uwb/data", 100); // 发布tag的定位信息
 
 	// 创建一个serial类
 	serial::Serial sp;
@@ -286,19 +410,6 @@ int main(int argc, char **argv)
 	sp.setBaudrate(115200);
 	// 串口设置timeout
 	sp.setTimeout(to);
-
-	// Load configs.
-	nh.param("AutopositionMode", AutopositionMode, 2);
-	nh.param("TagpositionMode", TagpositionMode, 1);
-
-	std::string anchor1_pos_topic;
-	std::string anchor2_pos_topic;
-	std::string anchor3_pos_topic;
-	std::string anchor4_pos_topic;
-	nh.param("anchor1_pos", anchor1_pos_topic);
-	nh.param("anchor2_pos", anchor2_pos_topic);
-	nh.param("anchor3_pos", anchor3_pos_topic);
-	nh.param("anchor4_pos", anchor4_pos_topic);
 
 	try
 	{
@@ -314,7 +425,7 @@ int main(int argc, char **argv)
 	// 判断串口是否打开成功
 	if (sp.isOpen())
 	{
-		ROS_INFO_STREAM("/dev/usb_uwb is opened.");
+		ROS_INFO_STREAM("/dev/usb_uwb port is opened.");
 	}
 	else
 	{
@@ -323,39 +434,9 @@ int main(int argc, char **argv)
 
 	// ros::Rate loop_rate(11);
 
-	if (AutopositionMode == 1)
-	{
-		std::cout << "AutopositionMode == 1!" << std::endl;
-		try
-		{
-			sp.write(order_start);
-			std::cout << "order_start sent successfully!\n";
-		}
-		catch (const std::exception &e)
-		{
-			std::cerr << "Failed to send data: " << e.what() << "\n";
-		}
-	}
-	else if (AutopositionMode == 2)
-	{
-		anchor1_pos_sub =
-			nh.subscribe("/vrpn_client_node/tb0/pose", 10, anchor1_pos_callback);
-		anchor2_pos_sub =
-			nh.subscribe("/vrpn_client_node/tb1/pose", 10, anchor2_pos_callback);
-		anchor3_pos_sub =
-			nh.subscribe("/vrpn_client_node/tb2/pose", 10, anchor3_pos_callback);
-		anchor4_pos_sub =
-			nh.subscribe("/vrpn_client_node/tb3/pose", 10, anchor4_pos_callback);
-		std::cout << "AutopositionMode == 2!" << std::endl;
-		std::cout << "Subsribed to 4 anchors' positon topic!" << std::endl;
-	}
-	else if (AutopositionMode == 0)
-	{
-		std::cout << "AutopositionMode == 0!" << std::endl;
-		std::cout << "Using fixed anchor position!" << std::endl;
-	}
+	uwbPositionSystem uwb_sys(nh, sp);
 
-	// 发布uwb话题
+	// uwb话题
 	uwb_location::uwb uwb_data;
 
 	while (ros::ok())
@@ -365,38 +446,22 @@ int main(int argc, char **argv)
 
 		if (len > 0)
 		{
-			unsigned char usart_buf[1024] = {0};
-			sp.read(usart_buf, len);
-
-			unsigned char *pbuf;
-			unsigned char buf[2014] = {0};
-
-			pbuf = (unsigned char *)usart_buf;
-			memcpy(&buf[0], pbuf, len);
-
-			int reallength = len;
-			int i;
-			if (reallength != 0)
-			{
-				for (i = 0; i < reallength; i++)
-				{
-					BufDataFromCtrl[BufCtrlPosit_w] = buf[i];
-
-					BufCtrlPosit_w = (BufCtrlPosit_w == (MAX_DATA_NUM - 1))
-										 ? 0
-										 : (1 + BufCtrlPosit_w);
-				}
-			}
-			CtrlSerDataDeal(sp);
+			uwb_sys.processSerialData(sp);
+			uwb_sys.CtrlSerDataDeal(sp);
 			//---------------------------------UWB----------------------------------------------------
 			uwb_data.time = ros::Time::now();
-			uwb_data.x = report.x;
-			uwb_data.y = report.y;
-			uwb_data.z = report.z;
+			uwb_data.x = uwb_sys.report.x;
+			uwb_data.y = uwb_sys.report.y;
+			uwb_data.z = uwb_sys.report.z;
 			// printf("tag.x=%.3f\r\ntag.y=%.3f\r\ntag.z=%.3f\r\n",uwb_data.x,uwb_data.y,uwb_data.z);
 			//--------------------------------------话题发布------------------------------------
-			uwb_publisher.publish(uwb_data);
+			uwb_sys.uwb_publisher.publish(uwb_data);
 		}
+		else
+		{
+			ROS_WARN_STREAM("No data received!");
+		}
+
 		ros::spinOnce();
 		// loop_rate.sleep();
 	}

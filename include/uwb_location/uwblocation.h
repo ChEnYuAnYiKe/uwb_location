@@ -16,40 +16,75 @@
 #define DataHead2 'M'
 #define DataTail '\n'
 
-unsigned char BufDataFromCtrl[MAX_DATA_NUM];
-int BufCtrlPosit_w = 0;
-int BufCtrlPosit_r = 0;
-int DataRecord = 0, rcvsign = 0;
+class uwbPositionSystem {
+public:
+    uwbPositionSystem(ros::NodeHandle &nh, serial::Serial& sp);
+    ~uwbPositionSystem();
 
-Eigen::MatrixXd anchorArray = Eigen::MatrixXd::Zero(8, 3);
-Eigen::MatrixXd anchorArray_last = Eigen::MatrixXd::Zero(8, 3);
+    // 输出的位置变量
+    vec3d report;
 
-ros::Subscriber anchor1_pos_sub;
-ros::Subscriber anchor2_pos_sub;
-ros::Subscriber anchor3_pos_sub;
-ros::Subscriber anchor4_pos_sub;
+    ros::Publisher uwb_publisher;
 
-// 是否开启自标定模式
-int AutopositionMode;
-// 标签定位算法：1 使用三边定位法；2 使用最小二乘法
-int TagpositionMode;
+    void CtrlSerDataDeal(serial::Serial& sp);
 
-std::string order_start = "$ancrangestart\r\n";
-std::string order_stop = "$ancrangestop\r\n";
+    void processSerialData(serial::Serial& sp);
 
-// 输出的位置变量
-vec3d report;
+private:
+    // 串口相关变量
+    unsigned char receive_buf[3000];  
+    unsigned char BufDataFromCtrl[MAX_DATA_NUM];
+    int BufCtrlPosit_w;
+    int BufCtrlPosit_r;
+    int DataRecord, rcvsign;
 
-void receive_deal_func(serial::Serial& sp);
+    // 是否开启自标定模式
+    int AutopositionMode;
+    // 标签定位算法：1 使用三边定位法；2 使用最小二乘法
+    int TagpositionMode;
 
-void CtrlSerDataDeal(serial::Serial& sp);
+    bool isAutoposition; 
 
-void anchor1_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    int result;
 
-void anchor2_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    Eigen::MatrixXd anchorArray;
+    Eigen::MatrixXd anchorArray_last;
 
-void anchor3_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    std::string order_start;
+    std::string order_stop;
 
-void anchor4_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    std::string anchor1_pos_topic;
+	std::string anchor2_pos_topic;
+	std::string anchor3_pos_topic;
+	std::string anchor4_pos_topic;
 
-int main(int argc, char** argv);
+    ros::Subscriber anchor1_pos_sub;
+    ros::Subscriber anchor2_pos_sub;
+    ros::Subscriber anchor3_pos_sub;
+    ros::Subscriber anchor4_pos_sub;
+
+    ros::Publisher array_row1_pub;
+    ros::Publisher array_row2_pub;
+    ros::Publisher array_row3_pub;
+    ros::Publisher array_row4_pub;
+
+    geometry_msgs::PoseStamped array_row1;
+    geometry_msgs::PoseStamped array_row2;
+    geometry_msgs::PoseStamped array_row3;
+    geometry_msgs::PoseStamped array_row4;
+
+    void receive_deal_func(serial::Serial& sp);
+
+	void array_pub_wrapper(Eigen::MatrixXd& anchorArray);
+
+	void anchor1_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+
+    void anchor2_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+
+    void anchor3_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+
+    void anchor4_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+};
+
+
+// int main(int argc, char** argv);
