@@ -102,8 +102,15 @@ void receive_deal_func(serial::Serial &sp)
 		{
 			return;
 		}
-
-		result = GetLocation(&report, anchorArray, &range[0], TagpositionMode);
+		if (AutopositionMode == 2)
+		{
+			boost::shared_lock<boost::shared_mutex> lock(anchorArrayMutex_);
+			result = GetLocation(&report, anchorArray, &range[0], TagpositionMode);
+		}
+		else
+		{
+			result = GetLocation(&report, anchorArray, &range[0], TagpositionMode);
+		}
 
 		printf("result = %d\n", result);
 		printf("x = %f\n", report.x);
@@ -231,6 +238,7 @@ void CtrlSerDataDeal(serial::Serial &sp)
 
 void anchor1_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_);
 	geometry_msgs::PoseStamped current_vrpn = *msg;
 	anchorArray(0, 0) = current_vrpn.pose.position.x;
 	anchorArray(0, 1) = current_vrpn.pose.position.y;
@@ -239,6 +247,7 @@ void anchor1_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 
 void anchor2_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_);
 	geometry_msgs::PoseStamped current_vrpn = *msg;
 	anchorArray(1, 0) = current_vrpn.pose.position.x;
 	anchorArray(1, 1) = current_vrpn.pose.position.y;
@@ -247,6 +256,7 @@ void anchor2_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 
 void anchor3_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_);
 	geometry_msgs::PoseStamped current_vrpn = *msg;
 	anchorArray(2, 0) = current_vrpn.pose.position.x;
 	anchorArray(2, 1) = current_vrpn.pose.position.y;
@@ -255,6 +265,7 @@ void anchor3_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 
 void anchor4_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_);
 	geometry_msgs::PoseStamped current_vrpn = *msg;
 	anchorArray(3, 0) = current_vrpn.pose.position.x;
 	anchorArray(3, 1) = current_vrpn.pose.position.y;
@@ -288,17 +299,13 @@ int main(int argc, char **argv)
 	sp.setTimeout(to);
 
 	// Load configs.
-	nh.param("AutopositionMode", AutopositionMode, 2);
+	nh.param("AutopositionMode", AutopositionMode, 0);
 	nh.param("TagpositionMode", TagpositionMode, 1);
 
-	std::string anchor1_pos_topic;
-	std::string anchor2_pos_topic;
-	std::string anchor3_pos_topic;
-	std::string anchor4_pos_topic;
-	nh.param("anchor1_pos", anchor1_pos_topic);
-	nh.param("anchor2_pos", anchor2_pos_topic);
-	nh.param("anchor3_pos", anchor3_pos_topic);
-	nh.param("anchor4_pos", anchor4_pos_topic);
+	// nh.param("anchor1_pos", anchor1_pos_topic);
+	// nh.param("anchor2_pos", anchor2_pos_topic);
+	// nh.param("anchor3_pos", anchor3_pos_topic);
+	// nh.param("anchor4_pos", anchor4_pos_topic);
 
 	try
 	{
@@ -339,20 +346,21 @@ int main(int argc, char **argv)
 	else if (AutopositionMode == 2)
 	{
 		anchor1_pos_sub =
-			nh.subscribe("/vrpn_client_node/tb0/pose", 10, anchor1_pos_callback);
+			nh.subscribe(anchor1_pos_topic, 100, anchor1_pos_callback);
 		anchor2_pos_sub =
-			nh.subscribe("/vrpn_client_node/tb1/pose", 10, anchor2_pos_callback);
+			nh.subscribe(anchor2_pos_topic, 100, anchor2_pos_callback);
 		anchor3_pos_sub =
-			nh.subscribe("/vrpn_client_node/tb2/pose", 10, anchor3_pos_callback);
+			nh.subscribe(anchor3_pos_topic, 100, anchor3_pos_callback);
 		anchor4_pos_sub =
-			nh.subscribe("/vrpn_client_node/tb3/pose", 10, anchor4_pos_callback);
-		std::cout << "AutopositionMode == 2!" << std::endl;
-		std::cout << "Subsribed to 4 anchors' positon topic!" << std::endl;
+			nh.subscribe(anchor4_pos_topic, 100, anchor4_pos_callback);
+
+		ROS_WARN_STREAM("AutopositionMode == 2! Subsribed to 4 anchors' positon topic!");
+		ros::Duration(1).sleep();
 	}
 	else if (AutopositionMode == 0)
 	{
-		std::cout << "AutopositionMode == 0!" << std::endl;
-		std::cout << "Using fixed anchor position!" << std::endl;
+		ROS_WARN_STREAM("AutopositionMode == 0! Using fixed anchor position!");
+		ros::Duration(1).sleep();
 	}
 
 	// 发布uwb话题
@@ -360,6 +368,7 @@ int main(int argc, char **argv)
 
 	while (ros::ok())
 	{
+		ros::spinOnce();
 		// 获取缓冲区内的字节数
 		size_t len = sp.available();
 
@@ -397,7 +406,6 @@ int main(int argc, char **argv)
 			//--------------------------------------话题发布------------------------------------
 			uwb_publisher.publish(uwb_data);
 		}
-		ros::spinOnce();
 		// loop_rate.sleep();
 	}
 	// 关闭串口

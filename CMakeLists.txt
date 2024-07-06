@@ -35,6 +35,7 @@ CATKIN_DEPENDS roscpp rospy std_msgs message_runtime serial geometry_msgs
 )
 
 find_package(Eigen3  REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system thread)
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
@@ -42,6 +43,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
+  ${Boost_INCLUDE_DIRS}
 )
 
 add_library(uwb_location_lib
@@ -53,12 +55,15 @@ add_library(uwb_location_lib
 target_link_libraries(uwb_location_lib
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBS}
+  ${Boost_LIBRARY_DIRS}
 )
 
 add_executable(uwblocating src/uwblocation.cpp)
+
 target_link_libraries(uwblocating
   uwb_location_lib
   ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
 )
 
 # add_library(trilateration include/uwb_location/trilateration.h src/trilateration.cpp)

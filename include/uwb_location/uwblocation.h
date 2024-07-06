@@ -10,6 +10,7 @@
 #include <serial/serial.h>
 #include <string.h>
 #include <string>
+#include <boost/thread/shared_mutex.hpp>
 
 #define MAX_DATA_NUM 1024 // 传消息内容最大长度
 #define DataHead 'm'
@@ -24,10 +25,17 @@ int DataRecord = 0, rcvsign = 0;
 Eigen::MatrixXd anchorArray = Eigen::MatrixXd::Zero(8, 3);
 Eigen::MatrixXd anchorArray_last = Eigen::MatrixXd::Zero(8, 3);
 
+boost::shared_mutex anchorArrayMutex_;
+
 ros::Subscriber anchor1_pos_sub;
 ros::Subscriber anchor2_pos_sub;
 ros::Subscriber anchor3_pos_sub;
 ros::Subscriber anchor4_pos_sub;
+
+std::string anchor1_pos_topic = "/vrpn_client_node/tb0/pose";
+std::string anchor2_pos_topic = "/vrpn_client_node/tb1/pose";
+std::string anchor3_pos_topic = "/vrpn_client_node/tb2/pose";
+std::string anchor4_pos_topic = "/vrpn_client_node/tb3/pose";
 
 // 是否开启自标定模式
 int AutopositionMode;
