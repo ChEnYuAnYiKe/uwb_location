@@ -171,11 +171,16 @@ void uwbPositionSystem::receive_deal_func(serial::Serial &sp)
 			return;
 		}
 
+		if (AutopositionMode == 2)
 		{		
 			boost::shared_lock<boost::shared_mutex> lock(anchorArrayMutex_); // 加读锁
 			
 			result = GetLocation(&report, anchorArray, &range[0], TagpositionMode);
 			uwbPositionSystem::array_pub_wrapper(anchorArray);
+		}
+		else
+		{
+			result = GetLocation(&report, anchorArray, &range[0], TagpositionMode);
 		}
 
 		printf("result = %d\n", result);
@@ -448,6 +453,7 @@ int main(int argc, char **argv)
 
 	while (ros::ok())
 	{
+		ros::spinOnce();
 		// 获取缓冲区内的字节数
 		size_t len = sp.available();
 
@@ -468,8 +474,6 @@ int main(int argc, char **argv)
 		{
 			ROS_WARN_STREAM("No data received!");
 		}
-
-		ros::spinOnce();
 		// loop_rate.sleep();
 	}
 	// 关闭串口

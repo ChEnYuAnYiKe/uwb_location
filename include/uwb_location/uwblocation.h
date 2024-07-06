@@ -39,7 +39,7 @@ private:
     int BufCtrlPosit_r;
     int DataRecord, rcvsign;
 
-    // 是否开启自标定模式
+    // 0_fixed_anchor_pos, 1_auto_position, 2_moving_anchors
     int AutopositionMode;
     // 标签定位算法：1 使用三边定位法；2 使用最小二乘法
     int TagpositionMode;
