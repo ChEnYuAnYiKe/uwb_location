@@ -32,43 +32,10 @@ void receive_deal_func(serial::Serial &sp)
 				return;
 			}
 		}
-		else if (AutopositionMode == 0)
-		{
-			// 手动基站标定，若基站位置修改则在下面更改标定坐标
-			// A0 uint:m
-			anchorArray(0, 0) = 0.0;
-			anchorArray(0, 1) = 0.0;
-			anchorArray(0, 2) = 0.2;
-			// A1 uint:m
-			anchorArray(1, 0) = 6.54;
-			anchorArray(1, 1) = 0.0;
-			anchorArray(1, 2) = 0.2;
-			// A2 uint:m
-			anchorArray(2, 0) = 6.71;
-			anchorArray(2, 1) = 6.80;
-			anchorArray(2, 2) = 0.2;
-			// A3 uint:m
-			anchorArray(3, 0) = -0.06;
-			anchorArray(3, 1) = 6.72;
-			anchorArray(3, 2) = 0.2;
+		// else if (AutopositionMode == 0)
+		// {
 
-			// A4 uint:m
-			anchorArray(4, 0) = 2.0;
-			anchorArray(4, 1) = 1.0;
-			anchorArray(4, 2) = 2.5;
-			// A5 uint:m
-			anchorArray(5, 0) = 2.0;
-			anchorArray(5, 1) = 0.0;
-			anchorArray(5, 2) = 2.5;
-			// A6 uint:m
-			anchorArray(6, 0) = 3.0;
-			anchorArray(6, 1) = 1.0;
-			anchorArray(6, 2) = 2.5;
-			// A7 uint:m
-			anchorArray(7, 0) = 3.0;
-			anchorArray(7, 1) = 0.0;
-			anchorArray(7, 2) = 2.5;
-		}
+		// }
 
 		int aid, tid, lnum, seq, mask;
 		int rangetime;
@@ -285,7 +252,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	ros::NodeHandle nh1;
 	ros::Publisher uwb_publisher =
-		nh.advertise<uwb_location::uwb>("/uwb/data", 100); // 发布tag的定位信息
+		nh.advertise<uwb_location::uwb>("/uwb/data", 200); // 发布tag的定位信息
 
 	// 创建一个serial类
 	serial::Serial sp;
@@ -359,6 +326,40 @@ int main(int argc, char **argv)
 	}
 	else if (AutopositionMode == 0)
 	{
+		// 手动基站标定，若基站位置修改则在下面更改标定坐标
+		// A0 uint:m
+		anchorArray(0, 0) = 0.0;
+		anchorArray(0, 1) = 0.0;
+		anchorArray(0, 2) = 0.2;
+		// A1 uint:m
+		anchorArray(1, 0) = 6.54;
+		anchorArray(1, 1) = 0.0;
+		anchorArray(1, 2) = 0.2;
+		// A2 uint:m
+		anchorArray(2, 0) = 6.71;
+		anchorArray(2, 1) = 6.80;
+		anchorArray(2, 2) = 0.2;
+		// A3 uint:m
+		anchorArray(3, 0) = -0.06;
+		anchorArray(3, 1) = 6.72;
+		anchorArray(3, 2) = 0.2;
+
+		// A4 uint:m
+		anchorArray(4, 0) = 2.0;
+		anchorArray(4, 1) = 1.0;
+		anchorArray(4, 2) = 2.5;
+		// A5 uint:m
+		anchorArray(5, 0) = 2.0;
+		anchorArray(5, 1) = 0.0;
+		anchorArray(5, 2) = 2.5;
+		// A6 uint:m
+		anchorArray(6, 0) = 3.0;
+		anchorArray(6, 1) = 1.0;
+		anchorArray(6, 2) = 2.5;
+		// A7 uint:m
+		anchorArray(7, 0) = 3.0;
+		anchorArray(7, 1) = 0.0;
+		anchorArray(7, 2) = 2.5;
 		ROS_WARN_STREAM("AutopositionMode == 0! Using fixed anchor position!");
 		ros::Duration(1).sleep();
 	}

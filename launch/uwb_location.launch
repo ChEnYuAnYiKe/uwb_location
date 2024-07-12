@@ -1,6 +1,6 @@
 <launch>
     <!-- 0_fixed_anchor_pos, 1_auto_position, 2_moving_anchors -->
-    <param name="AutopositionMode" type="int" value="2" />
+    <param name="AutopositionMode" type="int" value="0" />
     <!-- 1_trilaterationMethod, 2_leastSquaresMethod -->
     <param name="TagpositionMode" type="int" value="2" />
 
