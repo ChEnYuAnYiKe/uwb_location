@@ -4,6 +4,7 @@
 #include "uwb_location/uwb.h"
 #include <Eigen/Core>
 #include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <iostream>
 #include <ros/ros.h>
 #include <sensor_msgs/Imu.h>
@@ -32,10 +33,14 @@ ros::Subscriber anchor2_pos_sub;
 ros::Subscriber anchor3_pos_sub;
 ros::Subscriber anchor4_pos_sub;
 
-std::string anchor1_pos_topic = "/vrpn_client_node/tb0/pose";
-std::string anchor2_pos_topic = "/vrpn_client_node/tb1/pose";
-std::string anchor3_pos_topic = "/vrpn_client_node/tb2/pose";
-std::string anchor4_pos_topic = "/vrpn_client_node/tb3/pose";
+// std::string anchor1_pos_topic = "/vrpn_client_node/tb0/pose";
+// std::string anchor2_pos_topic = "/vrpn_client_node/tb1/pose";
+// std::string anchor3_pos_topic = "/vrpn_client_node/tb2/pose";
+// std::string anchor4_pos_topic = "/vrpn_client_node/tb3/pose";
+std::string anchor1_pos_topic = "/robot_0/Odometry";
+std::string anchor2_pos_topic = "/robot_1/Odometry";
+std::string anchor3_pos_topic = "/robot_2/Odometry";
+std::string anchor4_pos_topic = "/robot_3/Odometry";
 
 // 是否开启自标定模式
 int AutopositionMode;
@@ -59,5 +64,13 @@ void anchor2_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 void anchor3_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
 void anchor4_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+
+void anchor1_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
+
+void anchor2_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
+
+void anchor3_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
+
+void anchor4_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
 
 int main(int argc, char** argv);

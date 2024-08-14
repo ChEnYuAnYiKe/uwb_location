@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 find_package(catkin REQUIRED COMPONENTS
   message_generation
   geometry_msgs
+  nav_msgs
   roscpp
   rospy
   serial

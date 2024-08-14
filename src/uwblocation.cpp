@@ -239,6 +239,43 @@ void anchor4_pos_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
 	anchorArray(3, 2) = current_vrpn.pose.position.z + 0.15;
 }
 
+// if use fast-lio
+void anchor1_odom_callback(const nav_msgs::Odometry::ConstPtr &msg)
+{
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_);
+	nav_msgs::Odometry current_odom = *msg;
+	anchorArray(0, 0) = current_odom.pose.pose.position.x;
+	anchorArray(0, 1) = current_odom.pose.pose.position.y;
+	anchorArray(0, 2) = current_odom.pose.pose.position.z;
+}	
+
+void anchor2_odom_callback(const nav_msgs::Odometry::ConstPtr &msg)
+{
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_);
+	nav_msgs::Odometry current_odom = *msg;
+	anchorArray(1, 0) = current_odom.pose.pose.position.x;
+	anchorArray(1, 1) = current_odom.pose.pose.position.y;
+	anchorArray(1, 2) = current_odom.pose.pose.position.z;
+}
+
+void anchor3_odom_callback(const nav_msgs::Odometry::ConstPtr &msg)
+{
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_);
+	nav_msgs::Odometry current_odom = *msg;
+	anchorArray(2, 0) = current_odom.pose.pose.position.x;
+	anchorArray(2, 1) = current_odom.pose.pose.position.y;
+	anchorArray(2, 2) = current_odom.pose.pose.position.z;
+}
+
+void anchor4_odom_callback(const nav_msgs::Odometry::ConstPtr &msg)
+{
+	boost::unique_lock<boost::shared_mutex> lock(anchorArrayMutex_);
+	nav_msgs::Odometry current_odom = *msg;
+	anchorArray(3, 0) = current_odom.pose.pose.position.x;
+	anchorArray(3, 1) = current_odom.pose.pose.position.y;
+	anchorArray(3, 2) = current_odom.pose.pose.position.z;
+}
+
 int main(int argc, char **argv)
 {
 	setlocale(LC_ALL, "");
@@ -252,7 +289,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	ros::NodeHandle nh1;
 	ros::Publisher uwb_publisher =
-		nh.advertise<uwb_location::uwb>("/uwb/data", 200); // 发布tag的定位信息
+		nh.advertise<uwb_location::uwb>("/uwb/data", 500); // 发布tag的定位信息
 
 	// 创建一个serial类
 	serial::Serial sp;
@@ -312,14 +349,19 @@ int main(int argc, char **argv)
 	}
 	else if (AutopositionMode == 2)
 	{
-		anchor1_pos_sub =
-			nh.subscribe(anchor1_pos_topic, 100, anchor1_pos_callback);
-		anchor2_pos_sub =
-			nh.subscribe(anchor2_pos_topic, 100, anchor2_pos_callback);
-		anchor3_pos_sub =
-			nh.subscribe(anchor3_pos_topic, 100, anchor3_pos_callback);
-		anchor4_pos_sub =
-			nh.subscribe(anchor4_pos_topic, 100, anchor4_pos_callback);
+		// anchor1_pos_sub =
+		// 	nh.subscribe(anchor1_pos_topic, 100, anchor1_pos_callback);
+		// anchor2_pos_sub =
+		// 	nh.subscribe(anchor2_pos_topic, 100, anchor2_pos_callback);
+		// anchor3_pos_sub =
+		// 	nh.subscribe(anchor3_pos_topic, 100, anchor3_pos_callback);
+		// anchor4_pos_sub =
+		// 	nh.subscribe(anchor4_pos_topic, 100, anchor4_pos_callback);
+
+		anchor1_pos_sub = nh.subscribe(anchor1_pos_topic, 100, anchor1_odom_callback);
+		anchor2_pos_sub = nh.subscribe(anchor2_pos_topic, 100, anchor2_odom_callback);
+		anchor3_pos_sub = nh.subscribe(anchor3_pos_topic, 100, anchor3_odom_callback);
+		anchor4_pos_sub = nh.subscribe(anchor4_pos_topic, 100, anchor4_odom_callback);
 
 		ROS_WARN_STREAM("AutopositionMode == 2! Subsribed to 4 anchors' positon topic!");
 		ros::Duration(1).sleep();
