@@ -8,8 +8,8 @@
         <param name="TagpositionMode" type="int" value="2" />
 
         <param name="anchor1_pos" value="/robot_0/Odometry" />
-        <param name="anchor2_pos" value="/robot_1/Odometry" />
-        <param name="anchor3_pos" value="/robot_2/Odometry" />
-        <param name="anchor4_pos" value="/robot_3/Odometry" />
+        <param name="anchor2_pos" value="/robot_3/Odometry" />
+        <param name="anchor3_pos" value="/robot_4/Odometry" />
+        <param name="anchor4_pos" value="/robot_5/Odometry" />
     </node>
 </launch>
