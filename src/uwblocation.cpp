@@ -288,8 +288,8 @@ int main(int argc, char **argv)
 	// 创建句柄
 	ros::NodeHandle nh;
 	ros::NodeHandle nh1;
-	ros::Publisher uwb_publisher =
-		nh.advertise<uwb_location::uwb>("/uwb/data", 500); // 发布tag的定位信息
+	// ros::Publisher uwb_publisher = nh.advertise<uwb_location::uwb>("/uwb/data", 500); // 发布tag的定位信息
+	ros::Publisher uwb_publisher = nh.advertise<geometry_msgs::PoseStamped>("/uwb/data", 500); // 发布tag的定位信息
 
 	// 创建一个serial类
 	serial::Serial sp;
@@ -332,7 +332,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	// ros::Rate loop_rate(11);
+	ros::Rate loop_rate(200);
 
 	if (AutopositionMode == 1)
 	{
@@ -407,7 +407,8 @@ int main(int argc, char **argv)
 	}
 
 	// 发布uwb话题
-	uwb_location::uwb uwb_data;
+	// uwb_location::uwb uwb_data;
+	geometry_msgs::PoseStamped uwb_data;
 
 	while (ros::ok())
 	{
@@ -441,15 +442,15 @@ int main(int argc, char **argv)
 			}
 			CtrlSerDataDeal(sp);
 			//---------------------------------UWB----------------------------------------------------
-			uwb_data.time = ros::Time::now();
-			uwb_data.x = report.x;
-			uwb_data.y = report.y;
-			uwb_data.z = report.z;
+			uwb_data.header.stamp = ros::Time::now();
+			uwb_data.pose.position.x = report.x;
+			uwb_data.pose.position.y = report.y;
+			uwb_data.pose.position.z = report.z;
 			// printf("tag.x=%.3f\r\ntag.y=%.3f\r\ntag.z=%.3f\r\n",uwb_data.x,uwb_data.y,uwb_data.z);
 			//--------------------------------------话题发布------------------------------------
 			uwb_publisher.publish(uwb_data);
 		}
-		// loop_rate.sleep();
+		loop_rate.sleep();
 	}
 	// 关闭串口
 	sp.close();
