@@ -306,10 +306,10 @@ int main(int argc, char **argv)
 	nh.param("AutopositionMode", AutopositionMode, 0);
 	nh.param("TagpositionMode", TagpositionMode, 1);
 
-	// nh.param("anchor1_pos", anchor1_pos_topic);
-	// nh.param("anchor2_pos", anchor2_pos_topic);
-	// nh.param("anchor3_pos", anchor3_pos_topic);
-	// nh.param("anchor4_pos", anchor4_pos_topic);
+	nh.param("anchor1_pos", anchor1_pos_topic);
+	nh.param("anchor2_pos", anchor2_pos_topic);
+	nh.param("anchor3_pos", anchor3_pos_topic);
+	nh.param("anchor4_pos", anchor4_pos_topic);
 
 	try
 	{

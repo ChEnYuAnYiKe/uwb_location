@@ -33,14 +33,14 @@ ros::Subscriber anchor2_pos_sub;
 ros::Subscriber anchor3_pos_sub;
 ros::Subscriber anchor4_pos_sub;
 
-// std::string anchor1_pos_topic = "/vrpn_client_node/tb0/pose";
-// std::string anchor2_pos_topic = "/vrpn_client_node/tb1/pose";
-// std::string anchor3_pos_topic = "/vrpn_client_node/tb2/pose";
-// std::string anchor4_pos_topic = "/vrpn_client_node/tb3/pose";
-std::string anchor1_pos_topic = "/robot_0/Odometry";
-std::string anchor2_pos_topic = "/robot_1/Odometry";
-std::string anchor3_pos_topic = "/robot_2/Odometry";
-std::string anchor4_pos_topic = "/robot_3/Odometry";
+std::string anchor1_pos_topic;
+std::string anchor2_pos_topic;
+std::string anchor3_pos_topic;
+std::string anchor4_pos_topic;
+// std::string anchor1_pos_topic = "/robot_0/Odometry";
+// std::string anchor2_pos_topic = "/robot_1/Odometry";
+// std::string anchor3_pos_topic = "/robot_2/Odometry";
+// std::string anchor4_pos_topic = "/robot_3/Odometry";
 
 // 是否开启自标定模式
 int AutopositionMode;
