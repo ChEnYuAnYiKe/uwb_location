@@ -332,7 +332,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	ros::Rate loop_rate(200);
+	// ros::Rate loop_rate(200);
 
 	if (AutopositionMode == 1)
 	{
@@ -450,7 +450,7 @@ int main(int argc, char **argv)
 			//--------------------------------------话题发布------------------------------------
 			uwb_publisher.publish(uwb_data);
 		}
-		loop_rate.sleep();
+		// loop_rate.sleep();
 	}
 	// 关闭串口
 	sp.close();
