@@ -3,7 +3,7 @@
 
     <node name="uwb_location_node" pkg="uwb_location" type="uwblocating" output="screen">
         <!-- 0_fixed_anchor_pos, 1_auto_position, 2_moving_anchors -->
-        <param name="AutopositionMode" type="int" value="0" />
+        <param name="AutopositionMode" type="int" value="2" />
         <!-- 1_trilaterationMethod, 2_leastSquaresMethod -->
         <param name="TagpositionMode" type="int" value="2" />
 

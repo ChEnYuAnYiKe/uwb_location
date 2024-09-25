@@ -303,8 +303,8 @@ int main(int argc, char **argv)
 	sp.setTimeout(to);
 
 	// Load configs.
-	nh.param("AutopositionMode", AutopositionMode, 0);
-	nh.param("TagpositionMode", TagpositionMode, 1);
+	nh.param("AutopositionMode", AutopositionMode, 2);
+	nh.param("TagpositionMode", TagpositionMode, 2);
 
 	nh.param("anchor1_pos", anchor1_pos_topic);
 	nh.param("anchor2_pos", anchor2_pos_topic);
