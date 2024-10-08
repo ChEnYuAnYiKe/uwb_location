@@ -5,7 +5,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  message_generation
+  # message_generation
   geometry_msgs
   nav_msgs
   roscpp
@@ -15,23 +15,23 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  uwb.msg
+# add_message_files(
+#   FILES
+#   uwb.msg
   
-)
+# )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs
+# )
 
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES Uwb_Location
-CATKIN_DEPENDS roscpp rospy std_msgs message_runtime serial geometry_msgs
+CATKIN_DEPENDS roscpp rospy std_msgs serial geometry_msgs
 #  DEPENDS system_lib
 )
 
@@ -53,15 +53,15 @@ add_library(uwb_location_lib
   src/uwblocation.cpp
 )
 
-target_link_libraries(uwb_location_lib
-  ${catkin_LIBRARIES}
-  ${EIGEN3_LIBS}
-  ${Boost_LIBRARY_DIRS}
-)
+# target_link_libraries(uwb_location_lib
+#   ${catkin_LIBRARIES}
+#   ${EIGEN3_LIBS}
+#   ${Boost_LIBRARY_DIRS}
+# )
 
-add_executable(uwblocating src/uwblocation.cpp)
+add_executable(uwblocate src/uwblocation_node.cpp)
 
-target_link_libraries(uwblocating
+target_link_libraries(uwblocate
   uwb_location_lib
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}

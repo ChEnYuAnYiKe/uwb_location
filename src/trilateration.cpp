@@ -11,37 +11,14 @@
 // -------------------------------------------------------------------------------------------------------------------
 
 #include "uwb_location/trilateration.h"
-#include "iostream"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "time.h"
+
 using namespace std;
 
 /* Largest nonnegative number still considered zero */
 #define MAXZERO 0.001
 
-#define ERR_TRIL_CONCENTRIC -1
-#define ERR_TRIL_COLINEAR_2SOLUTIONS -2
-#define ERR_TRIL_SQRTNEGNUMB -3
-#define ERR_TRIL_NOINTERSECTION_SPHERE4 -4
-#define ERR_TRIL_NEEDMORESPHERE -5
-
-#define UWB_ANC_BELOW_THREE -6
-#define UWB_LIN_DEP_FOR_THREE -7
-#define UWB_ANC_ON_ONE_LEVEL -8
-#define UWB_LIN_DEP_FOR_FOUR -9
-#define UWB_RANK_ZERO -10
-
-#define CM_ERR_ADDED (10) // was 5
-
-struct num {
-	int anc_ID;
-	int distance;
-} valid_anc_num[(MAX_AHCHOR_NUMBER + 1)];
-
 /* Return the difference of two vectors, (vector1 - vector2). */
-vec3d vdiff(const vec3d vector1, const vec3d vector2) {
+vec3d Trilateration::vdiff(const vec3d vector1, const vec3d vector2) {
 	vec3d v;
 	v.x = vector1.x - vector2.x;
 	v.y = vector1.y - vector2.y;
@@ -50,7 +27,7 @@ vec3d vdiff(const vec3d vector1, const vec3d vector2) {
 }
 
 /* Return the sum of two vectors. */
-vec3d vsum(const vec3d vector1, const vec3d vector2) {
+vec3d Trilateration::vsum(const vec3d vector1, const vec3d vector2) {
 	vec3d v;
 	v.x = vector1.x + vector2.x;
 	v.y = vector1.y + vector2.y;
@@ -59,7 +36,7 @@ vec3d vsum(const vec3d vector1, const vec3d vector2) {
 }
 
 /* Multiply vector by a number. */
-vec3d vmul(const vec3d vector, const double n) {
+vec3d Trilateration::vmul(const vec3d vector, const double n) {
 	vec3d v;
 	v.x = vector.x * n;
 	v.y = vector.y * n;
@@ -68,7 +45,7 @@ vec3d vmul(const vec3d vector, const double n) {
 }
 
 /* Divide vector by a number. */
-vec3d vdiv(const vec3d vector, const double n) {
+vec3d Trilateration::vdiv(const vec3d vector, const double n) {
 	vec3d v;
 	v.x = vector.x / n;
 	v.y = vector.y / n;
@@ -77,7 +54,7 @@ vec3d vdiv(const vec3d vector, const double n) {
 }
 
 /* Return the Euclidean norm. */
-double vdist(const vec3d v1, const vec3d v2) {
+double Trilateration::vdist(const vec3d v1, const vec3d v2) {
 	double xd = v1.x - v2.x;
 	double yd = v1.y - v2.y;
 	double zd = v1.z - v2.z;
@@ -85,19 +62,19 @@ double vdist(const vec3d v1, const vec3d v2) {
 }
 
 /* Return the Euclidean norm. */
-double vnorm(const vec3d vector) {
+double Trilateration::vnorm(const vec3d vector) {
 	return sqrt(vector.x * vector.x + vector.y * vector.y +
 	            vector.z * vector.z);
 }
 
 /* Return the dot product of two vectors. */
-double dot(const vec3d vector1, const vec3d vector2) {
+double Trilateration::dot(const vec3d vector1, const vec3d vector2) {
 	return vector1.x * vector2.x + vector1.y * vector2.y +
 	       vector1.z * vector2.z;
 }
 
 /* Replace vector with its cross product with another vector. */
-vec3d cross(const vec3d vector1, const vec3d vector2) {
+vec3d Trilateration::cross(const vec3d vector1, const vec3d vector2) {
 	vec3d v;
 	v.x = vector1.y * vector2.z - vector1.z * vector2.y;
 	v.y = vector1.z * vector2.x - vector1.x * vector2.z;
@@ -108,7 +85,7 @@ vec3d cross(const vec3d vector1, const vec3d vector2) {
 /* Return the GDOP (Geometric Dilution of Precision) rate between 0-1.
  * Lower GDOP rate means better precision of intersection.
  */
-double gdoprate(const vec3d tag, const vec3d p1, const vec3d p2,
+double Trilateration::gdoprate(const vec3d tag, const vec3d p1, const vec3d p2,
                 const vec3d p3) {
 	vec3d ex, t1, t2, t3;
 	double h, gdop1, gdop2, gdop3, result;
@@ -143,7 +120,7 @@ double gdoprate(const vec3d tag, const vec3d p1, const vec3d p2,
  * Return zero if successful, negative error otherwise.
  * mu1 & mu2 are constant to find points of intersection.
  */
-int sphereline(const vec3d p1, const vec3d p2, const vec3d sc, double r,
+int Trilateration::sphereline(const vec3d p1, const vec3d p2, const vec3d sc, double r,
                double* const mu1, double* const mu2) {
 	double a, b, c;
 	double bb4ac;
@@ -190,7 +167,7 @@ int sphereline(const vec3d p1, const vec3d p2, const vec3d sc, double r,
  * The last parameter is the largest nonnegative number considered zero;
  * it is somewhat analogous to machine epsilon (but inclusive).
  */
-int trilateration(vec3d* const result1, vec3d* const result2,
+int Trilateration::trilateration(vec3d* const result1, vec3d* const result2,
                   vec3d* const best_solution, const vec3d p1, const double r1,
                   const vec3d p2, const double r2, const vec3d p3,
                   const double r3, const vec3d p4, const double r4,
@@ -536,7 +513,7 @@ int trilateration(vec3d* const result1, vec3d* const result2,
  * nosolution_count = the number of failed attempt before intersection is found
  * by increasing the sphere diameter.
  */
-int deca_3dlocate(vec3d* const solution1, vec3d* const solution2,
+int Trilateration::deca_3dlocate(vec3d* const solution1, vec3d* const solution2,
                   vec3d* const best_solution, int* const nosolution_count,
                   double* const best_3derror, double* const best_gdoprate,
                   vec3d p1, double r1, vec3d p2, double r2, vec3d p3, double r3,
@@ -672,8 +649,8 @@ int deca_3dlocate(vec3d* const solution1, vec3d* const solution2,
 		return trilateration_mode34;
 }
 
-int leastSquaresMethod(vec3d* best_solution, Eigen::MatrixXd anchorArray,
-                       int* distanceArray) {
+int Trilateration::leastSquaresMethod(vec3d* best_solution, Eigen::Matrix<double, 8, 3>anchorArray) 
+{
 	/*!@brief: This function calculates the 3D position of the initiator from
 	 the anchor distances and positions using least squared errors. * The
 	 function expects more than 4 anchors. The used equation system looks like
@@ -741,9 +718,9 @@ int leastSquaresMethod(vec3d* best_solution, Eigen::MatrixXd anchorArray,
 
 	/* Reject invalid distances (including related anchor position) */
 	for (int i = 0; i < no_distances; i++) {
-		if (distanceArray[i] > 0) {
+		if (range[i] > 0) {
 			// excludes any distance that is 0xFFFFU (int16 Maximum Value)
-			distances_cm[no_valid_distances] = distanceArray[i] / 10;
+			distances_cm[no_valid_distances] = range[i] / 10;
 			anchor_pos[no_valid_distances].x = anchorArray(i, 0) * 100;
 			anchor_pos[no_valid_distances].y = anchorArray(i, 1) * 100;
 			anchor_pos[no_valid_distances].z = anchorArray(i, 2) * 100;
@@ -989,13 +966,12 @@ int leastSquaresMethod(vec3d* best_solution, Eigen::MatrixXd anchorArray,
 	return 1;
 }
 
-int cmp(const void* m, const void* n) // 定义返回值返回方式
-{
-	return ((struct num*)m)->distance - ((struct num*)n)->distance;
-}
+// static int cmp(const void* m, const void* n) // 定义返回值返回方式
+// {
+// 	return ((struct num*)m)->distance - ((struct num*)n)->distance;
+// }
 
-int GetLocation(vec3d* best_solution, Eigen::MatrixXd anchorArray,
-                int* distanceArray, int mode) {
+int Trilateration::GetLocation(vec3d* best_solution, int mode) {
 
 	vec3d o1, o2, p1, p2, p3, p4;
 	double r1 = 0, r2 = 0, r3 = 0, r4 = 0, best_3derror, best_gdoprate;
@@ -1013,21 +989,21 @@ int GetLocation(vec3d* best_solution, Eigen::MatrixXd anchorArray,
 
 	for (int i = 0; i < MAX_AHCHOR_NUMBER; i++) // 验证几个有效距离值
 	{
-		if (distanceArray[i] > 0) // 如果测量到的距离存在则有效
+		if (range[i] > 0) // 如果测量到的距离存在则有效
 		{
 			valid_anc_count++;
 			valid_anc_num[j].anc_ID = i; // 记录有效基站编号
-			valid_anc_num[j].distance = distanceArray[i]; // 记录有效基站距离
+			valid_anc_num[j].distance = range[i]; // 记录有效基站距离
 			j++;
 		}
 	}
 
-	printf("valid_anc number = %d\n", valid_anc_count);
+	printf("valid anc number = %d\n", valid_anc_count);
 
 	if (mode == 1) {
 		if (valid_anc_count < 3) {
 			return -1;
-			puts("err1");
+			printf("err1");
 		}
 
 		else if (valid_anc_count == 3) // 直接执行三基站定位
@@ -1047,9 +1023,9 @@ int GetLocation(vec3d* best_solution, Eigen::MatrixXd anchorArray,
 			p4.y = p1.y;
 			p4.z = p1.z;
 
-			r1 = (double)distanceArray[valid_anc_num[0].anc_ID] / 1000.0;
-			r2 = (double)distanceArray[valid_anc_num[1].anc_ID] / 1000.0;
-			r3 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
+			r1 = (double)range[valid_anc_num[0].anc_ID] / 1000.0;
+			r2 = (double)range[valid_anc_num[1].anc_ID] / 1000.0;
+			r3 = (double)range[valid_anc_num[2].anc_ID] / 1000.0;
 			r4 = r1;
 
 		}
@@ -1070,21 +1046,18 @@ int GetLocation(vec3d* best_solution, Eigen::MatrixXd anchorArray,
 			p4.y = anchorArray(valid_anc_num[3].anc_ID, 1);
 			p4.z = anchorArray(valid_anc_num[3].anc_ID, 2);
 
-			r1 = (double)distanceArray[valid_anc_num[0].anc_ID] / 1000.0;
-			r2 = (double)distanceArray[valid_anc_num[1].anc_ID] / 1000.0;
-			r3 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
-			r4 = (double)distanceArray[valid_anc_num[3].anc_ID] / 1000.0;
+			r1 = (double)range[valid_anc_num[0].anc_ID] / 1000.0;
+			r2 = (double)range[valid_anc_num[1].anc_ID] / 1000.0;
+			r3 = (double)range[valid_anc_num[2].anc_ID] / 1000.0;
+			r4 = (double)range[valid_anc_num[3].anc_ID] / 1000.0;
 
 		}
 
 		// valid_anc_count 有效基站个数
 		// valid_anc_num[0] 有效基站编号
-		else if (valid_anc_count >
-		         4) // 执行基站选取机制，选取最近的4个基站1234进行计算
+		else if (valid_anc_count > 4) // 执行基站选取机制，选取最近的4个基站1234进行计算
 		{
-			qsort(valid_anc_num, (valid_anc_count + 1),
-			      sizeof(valid_anc_num[0]),
-			      cmp); // 将有效距离值进行从小到大排序
+			qsort(valid_anc_num, (valid_anc_count + 1), sizeof(valid_anc_num[0]), cmp); // 将有效距离值进行从小到大排序
 			for (int i = 1; i <= valid_anc_count; i++) // 输出结果
 				printf("No%d DIS=%d,ID=A%d\n", i, valid_anc_num[i].distance,
 				       valid_anc_num[i].anc_ID);
@@ -1102,10 +1075,10 @@ int GetLocation(vec3d* best_solution, Eigen::MatrixXd anchorArray,
 			p4.y = anchorArray(valid_anc_num[3].anc_ID, 1);
 			p4.z = anchorArray(valid_anc_num[3].anc_ID, 2);
 
-			r1 = (double)distanceArray[valid_anc_num[1].anc_ID] / 1000.0;
-			r2 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
-			r3 = (double)distanceArray[valid_anc_num[3].anc_ID] / 1000.0;
-			r4 = (double)distanceArray[valid_anc_num[4].anc_ID] / 1000.0;
+			r1 = (double)range[valid_anc_num[1].anc_ID] / 1000.0;
+			r2 = (double)range[valid_anc_num[2].anc_ID] / 1000.0;
+			r3 = (double)range[valid_anc_num[3].anc_ID] / 1000.0;
+			r4 = (double)range[valid_anc_num[4].anc_ID] / 1000.0;
 
 			printf("use1=A%d,use2=A%d,use3=A%d,use4=A%d\n",
 			       valid_anc_num[1].anc_ID, valid_anc_num[2].anc_ID,
@@ -1116,9 +1089,7 @@ int GetLocation(vec3d* best_solution, Eigen::MatrixXd anchorArray,
 		                       &best_gdoprate, p1, r1, p2, r2, p3, r3, p4, r4,
 		                       &combination);
 
-		if ((result == 0) &&
-		    (valid_anc_count >
-		     4)) // 多于4基站选取后计算失败，把第1舍掉用第2345计算
+		if ((result == 0) && (valid_anc_count > 4)) // 多于4基站选取后计算失败，把第1舍掉用第2345计算
 		{
 			puts("Second calculation");
 			p1.x = anchorArray(valid_anc_num[0].anc_ID, 0);
@@ -1134,10 +1105,10 @@ int GetLocation(vec3d* best_solution, Eigen::MatrixXd anchorArray,
 			p4.y = anchorArray(valid_anc_num[3].anc_ID, 1);
 			p4.z = anchorArray(valid_anc_num[3].anc_ID, 2);
 
-			r1 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
-			r2 = (double)distanceArray[valid_anc_num[3].anc_ID] / 1000.0;
-			r3 = (double)distanceArray[valid_anc_num[4].anc_ID] / 1000.0;
-			r4 = (double)distanceArray[valid_anc_num[5].anc_ID] / 1000.0;
+			r1 = (double)range[valid_anc_num[2].anc_ID] / 1000.0;
+			r2 = (double)range[valid_anc_num[3].anc_ID] / 1000.0;
+			r3 = (double)range[valid_anc_num[4].anc_ID] / 1000.0;
+			r4 = (double)range[valid_anc_num[5].anc_ID] / 1000.0;
 
 			printf("use1=A%d,use2=A%d,use3=A%d,use4=A%d\n",
 			       valid_anc_num[2].anc_ID, valid_anc_num[3].anc_ID,
@@ -1157,18 +1128,19 @@ int GetLocation(vec3d* best_solution, Eigen::MatrixXd anchorArray,
 				if (o1.z < p1.z)
 					*best_solution = o1;
 				else
-					*best_solution =
-					    o2; // assume tag is below the anchors (1, 2, and 3)
+					*best_solution = o2; // assume tag is below the anchors (1, 2, and 3)
 			}
 
 			return result;
 		}
 		return -1;
-	} else if (mode == 2) {
-		result = leastSquaresMethod(best_solution, anchorArray, distanceArray);
+	} 
+	else if (mode == 2) {
+		result = leastSquaresMethod(best_solution, anchorArray);
 
 		return result;
-	} else {
+	} 
+	else {
 		printf("No suitable tagposition mode!\n");
 		return -1;
 	}

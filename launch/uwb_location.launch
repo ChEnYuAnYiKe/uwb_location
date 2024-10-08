@@ -1,15 +1,24 @@
 <launch>
-
-
-    <node name="uwb_location_node" pkg="uwb_location" type="uwblocating" output="screen">
-        <!-- 0_fixed_anchor_pos, 1_auto_position, 2_moving_anchors -->
-        <param name="AutopositionMode" type="int" value="2" />
+    <node name="uwb_location_node" pkg="uwb_location" type="uwblocate" output="screen">
+        <!-- 0_fixed_anchor_pos, 2_moving_anchors (1_auto_position, abandoned) -->
+        <param name="AnchorMode" type="int" value="2" />
         <!-- 1_trilaterationMethod, 2_leastSquaresMethod -->
-        <param name="TagpositionMode" type="int" value="2" />
+        <param name="TagpositionMode" type="int" value="1" />
 
         <param name="anchor1_pos" value="/robot_0/Odometry" />
         <param name="anchor2_pos" value="/robot_3/Odometry" />
         <param name="anchor3_pos" value="/robot_4/Odometry" />
         <param name="anchor4_pos" value="/robot_5/Odometry" />
+
+        <!-- 0_fixed_anchor_pos 四个基站静态坐标 -->
+        <param name="point1" value="[0.0, 0.0, 0.2]" />
+        <param name="point2" value="[6.54, 0.0, 0.2]" />
+        <param name="point3" value="[6.71, 6.80, 0.2]" />
+        <param name="point4" value="[-0.06, 6.72, 0.2]" />
+
+        <!-- 位置发布频率 (<= 300) -->
+        <param name="publish_rate" value="200" />
+
+        <param name="port_name" value="/dev/usb_uwb" />
     </node>
 </launch>

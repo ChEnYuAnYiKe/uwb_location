@@ -1,76 +1,96 @@
 #include "autoposition.h"
-#include "std_msgs/String.h"
 #include "trilateration.h"
-// #include "uwb_location/uwb.h"
+
 #include <Eigen/Core>
-#include <geometry_msgs/PoseStamped.h>
-#include <nav_msgs/Odometry.h>
+// #include <string>
 #include <iostream>
 #include <ros/ros.h>
-#include <sensor_msgs/Imu.h>
 #include <serial/serial.h>
-#include <string.h>
-#include <string>
 #include <boost/thread/shared_mutex.hpp>
+
+#include "std_msgs/String.h"
+#include <sensor_msgs/Imu.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Odometry.h>
 
 #define MAX_DATA_NUM 1024 // 传消息内容最大长度
 #define DataHead 'm'
 #define DataHead2 'M'
 #define DataTail '\n'
 
-unsigned char BufDataFromCtrl[MAX_DATA_NUM];
-int BufCtrlPosit_w = 0;
-int BufCtrlPosit_r = 0;
-int DataRecord = 0, rcvsign = 0;
+class Uwblocator
+{
+private:
+    unsigned char BufDataFromCtrl[MAX_DATA_NUM];
+    int BufCtrlPosit_w;
+    int BufCtrlPosit_r;
+    int DataRecord, rcvsign;
 
-Eigen::MatrixXd anchorArray = Eigen::MatrixXd::Zero(8, 3);
-Eigen::MatrixXd anchorArray_last = Eigen::MatrixXd::Zero(8, 3);
+    unsigned char receive_buf[3000];
+    int result;
+    bool isAutoposition;
 
-boost::shared_mutex anchorArrayMutex_;
+    // Eigen::MatrixXd anchorArray = Eigen::MatrixXd::Zero(8, 3);
+    // Eigen::MatrixXd anchorArray_last = Eigen::MatrixXd::Zero(8, 3);
 
-ros::Subscriber anchor1_pos_sub;
-ros::Subscriber anchor2_pos_sub;
-ros::Subscriber anchor3_pos_sub;
-ros::Subscriber anchor4_pos_sub;
+    boost::shared_mutex anchorArrayMutex_;
 
-std::string anchor1_pos_topic;
-std::string anchor2_pos_topic;
-std::string anchor3_pos_topic;
-std::string anchor4_pos_topic;
-// std::string anchor1_pos_topic = "/robot_0/Odometry";
-// std::string anchor2_pos_topic = "/robot_1/Odometry";
-// std::string anchor3_pos_topic = "/robot_2/Odometry";
-// std::string anchor4_pos_topic = "/robot_3/Odometry";
+    ros::Subscriber anchor1_pos_sub;
+    ros::Subscriber anchor2_pos_sub;
+    ros::Subscriber anchor3_pos_sub;
+    ros::Subscriber anchor4_pos_sub;
 
-// 是否开启自标定模式
-int AutopositionMode;
-// 标签定位算法：1 使用三边定位法；2 使用最小二乘法
-int TagpositionMode;
+    ros::Publisher uwb_pub;
 
-std::string order_start = "$ancrangestart\r\n";
-std::string order_stop = "$ancrangestop\r\n";
+    ros::Timer compute_pos_timer;
 
-// 输出的位置变量
-vec3d report;
+    std::string anchor1_pos_topic;
+    std::string anchor2_pos_topic;
+    std::string anchor3_pos_topic;
+    std::string anchor4_pos_topic;
+	std::string port_name;
+	// std::string anchor1_pos_topic = "/robot_0/Odometry";
+	// std::string anchor2_pos_topic = "/robot_1/Odometry";
+	// std::string anchor3_pos_topic = "/robot_2/Odometry";
+	// std::string anchor4_pos_topic = "/robot_3/Odometry";
+	int height_extra;
 
-void receive_deal_func(serial::Serial& sp);
+	// 0_fixed_anchor_pos, 2_moving_anchors (1_auto_position, abandoned)
+    int AnchorMode;
+    // 1_trilaterationMethod, 2_leastSquaresMethod
+    int TagpositionMode;
 
-void CtrlSerDataDeal(serial::Serial& sp);
+    int pub_rate;
+    double pub_rate_inv;
 
-void anchor1_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    std::string order_start;
+    std::string order_stop;
 
-void anchor2_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    // 串口连接类
+    serial::Serial sp;
 
-void anchor3_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    // 定位功能类
+    Trilateration trilaterator;
 
-void anchor4_pos_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    // 输出的位置变量
+    vec3d report;
 
-void anchor1_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
+    // 发布uwb话题
+	geometry_msgs::PoseStamped uwb_data;
 
-void anchor2_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
+    void CtrlSerDataDeal(size_t len);
+    void receive_deal_func();
 
-void anchor3_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
+    void anchor1_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
+    void anchor2_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
+    void anchor3_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
+    void anchor4_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
 
-void anchor4_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
+    void fix_anchor_callback(const ros::TimerEvent& event);
+    void dynamic_anchor_callback(const ros::TimerEvent& event);
 
-int main(int argc, char** argv);
+public:
+    void init(ros::NodeHandle &nh);
+    void run();
+    // int main(int argc, char** argv);
+};
