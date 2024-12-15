@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   uwb.msg
-  
+  RangeArray.msg
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -29,13 +29,13 @@ generate_messages(
 
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES Uwb_Location
-CATKIN_DEPENDS roscpp rospy std_msgs message_runtime serial geometry_msgs
-#  DEPENDS system_lib
+  INCLUDE_DIRS include
+  LIBRARIES uwb_location
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime serial geometry_msgs
+  #  DEPENDS system_lib
 )
 
-find_package(Eigen3  REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
 
 ## Specify additional locations of header files
@@ -78,7 +78,7 @@ target_link_libraries(uwblocating
 # target_link_libraries(autoposition
 #         ${EIGEN3_LIBS}
 #         ${catkin_LIBRARIES})
-        
+
 # add_library(uwblocation include/uwb_location/uwblocation.h src/uwblocation.cpp)
 # add_dependencies(uwblocation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 # target_link_libraries(uwblocation
