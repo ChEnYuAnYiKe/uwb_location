@@ -21,7 +21,24 @@
 #define Ki                        0.2f
 #define halfT                     0.05f
 #define squa( Sq )                (((float)Sq)*((float)Sq))
-#define MAX_AHCHOR_NUMBER         8
+#define MAX_ANCHOR_NUMBER         4
+
+/* Largest nonnegative number still considered zero */
+#define MAXZERO 0.001
+
+#define ERR_TRIL_CONCENTRIC -1
+#define ERR_TRIL_COLINEAR_2SOLUTIONS -2
+#define ERR_TRIL_SQRTNEGNUMB -3
+#define ERR_TRIL_NOINTERSECTION_SPHERE4 -4
+#define ERR_TRIL_NEEDMORESPHERE -5
+
+#define UWB_ANC_BELOW_THREE -6
+#define UWB_LIN_DEP_FOR_THREE -7
+#define UWB_ANC_ON_ONE_LEVEL -8
+#define UWB_LIN_DEP_FOR_FOUR -9
+#define UWB_RANK_ZERO -10
+#define UWB_OK 1
+#define CM_ERR_ADDED 10
 
 typedef struct vec3d	vec3d;
 
@@ -88,6 +105,6 @@ int leastSquaresMethod(vec3d *best_solution, Eigen::MatrixXd anchorArray, int *d
 
 int cmp(const void *m,const void *n);
 
-int GetLocation(vec3d *best_solution, Eigen::MatrixXd anchorArray, int *distanceArray, int mode);
+// int GetLocation(vec3d *best_solution, Eigen::MatrixXd anchorArray, int *distanceArray, int mode);
 
 #endif

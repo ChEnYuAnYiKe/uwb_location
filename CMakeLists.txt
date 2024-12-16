@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(uwb_location)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_BUILD_TYPE "Release")
+add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
-## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   message_generation
   geometry_msgs
@@ -42,50 +44,22 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 ## Your package locations should be listed before other locations
 include_directories(
   include
-  ${catkin_INCLUDE_DIRS}
+  SYSTEM
+  ${catkin_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include
   ${EIGEN3_INCLUDE_DIR}
   ${Boost_INCLUDE_DIRS}
 )
 
-add_library(uwb_location_lib
-  src/trilateration.cpp
-  src/autoposition.cpp
-  src/uwblocation.cpp
-)
+add_executable(uwb_range src/uwblocation.cpp)
 
-target_link_libraries(uwb_location_lib
+target_link_libraries(uwb_range
   ${catkin_LIBRARIES}
-  ${EIGEN3_LIBS}
-  ${Boost_LIBRARY_DIRS}
 )
 
-add_executable(uwblocating src/uwblocation.cpp)
+add_executable(uwb_location src/location.cpp
+  src/trilateration.cpp)
 
-target_link_libraries(uwblocating
-  uwb_location_lib
+target_link_libraries(uwb_location
   ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
 )
 
-# add_library(trilateration include/uwb_location/trilateration.h src/trilateration.cpp)
-# add_dependencies(trilateration ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(trilateration
-#          ${EIGEN3_LIBS}
-#          ${catkin_LIBRARIES})
-
-# add_library(autoposition include/uwb_location/autoposition.h src/autoposition.cpp)
-# add_dependencies(autoposition ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(autoposition
-#         ${EIGEN3_LIBS}
-#         ${catkin_LIBRARIES})
-
-# add_library(uwblocation include/uwb_location/uwblocation.h src/uwblocation.cpp)
-# add_dependencies(uwblocation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(uwblocation
-#         ${EIGEN3_LIBS}
-#         ${catkin_LIBRARIES})        
-
-# add_executable(uwblocating src/uwblocation.cpp src/trilateration.cpp src/autoposition.cpp)
-# add_dependencies(uwblocating ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(uwblocating
-#         ${catkin_LIBRARIES})

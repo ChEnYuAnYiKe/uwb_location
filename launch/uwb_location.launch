@@ -1,5 +1,35 @@
 <launch>
-    <node name="uwb_location_node" pkg="uwb_location" type="uwblocating" output="screen">
-        <param name="port_name" value="/dev/ttyACM0"/>
+    <node pkg="uwb_location" name="uwb_location" type="uwb_location" output="screen">
+        <!-- 0: trilateration, 1: leastSquares -->
+        <param name="location_method" value="0"/>
+        
+        <!-- 0: fixed anchor, 1: moving anchor -->
+        <param name="anchorMode" value="0"/>
+
+        <!-- if anchorMode is 0, then set the anchor position -->
+        <param name="anchor_1_x" value="0.0" type="double"/>
+        <param name="anchor_1_y" value="0.0" type="double"/>
+        <param name="anchor_1_z" value="0.1" type="double"/>
+
+        <param name="anchor_2_x" value="0.75" type="double"/>
+        <param name="anchor_2_y" value="0.0" type="double"/>
+        <param name="anchor_2_z" value="0.1" type="double"/>
+
+        <param name="anchor_3_x" value="0.7" type="double"/>
+        <param name="anchor_3_y" value="0.53" type="double"/>
+        <param name="anchor_3_z" value="0.1" type="double"/>
+
+        <param name="anchor_4_x" value="0.0" type="double"/>
+        <param name="anchor_4_y" value="0.53" type="double"/>
+        <param name="anchor_4_z" value="0.1" type="double"/>
+
+        <!-- if anchorMode is 1, then set the anchor position topic -->
+        <!-- 0: Odometry, 1: PoseStamped -->
+        <param name="pose_type" value="0"/>
+        <!-- topic need to be set according to the pose_type -->
+        <param name="anchor1_pos_topic" value="/ugv_1/odom"/>
+        <param name="anchor2_pos_topic" value="/ugv_2/odom"/>
+        <param name="anchor3_pos_topic" value="/ugv_3/odom"/>
+        <param name="anchor4_pos_topic" value="/ugv_4/odom"/>
     </node>
 </launch>

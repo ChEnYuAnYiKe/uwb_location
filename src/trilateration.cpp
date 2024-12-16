@@ -18,27 +18,10 @@
 #include "time.h"
 using namespace std;
 
-/* Largest nonnegative number still considered zero */
-#define MAXZERO 0.001
-
-#define ERR_TRIL_CONCENTRIC -1
-#define ERR_TRIL_COLINEAR_2SOLUTIONS -2
-#define ERR_TRIL_SQRTNEGNUMB -3
-#define ERR_TRIL_NOINTERSECTION_SPHERE4 -4
-#define ERR_TRIL_NEEDMORESPHERE -5
-
-#define UWB_ANC_BELOW_THREE -6
-#define UWB_LIN_DEP_FOR_THREE -7
-#define UWB_ANC_ON_ONE_LEVEL -8
-#define UWB_LIN_DEP_FOR_FOUR -9
-#define UWB_RANK_ZERO -10
-
-#define CM_ERR_ADDED (10) // was 5
-
 struct num {
 	int anc_ID;
 	int distance;
-} valid_anc_num[(MAX_AHCHOR_NUMBER + 1)];
+} valid_anc_num[(MAX_ANCHOR_NUMBER + 1)];
 
 /* Return the difference of two vectors, (vector1 - vector2). */
 vec3d vdiff(const vec3d vector1, const vec3d vector2) {
@@ -734,7 +717,7 @@ int leastSquaresMethod(vec3d* best_solution, Eigen::MatrixXd anchorArray,
 	       // is non-zero => linear independent
 
 	/* Arrays for used distances and anchor positions (without rejected ones) */
-	uint8_t no_distances = MAX_AHCHOR_NUMBER;
+	uint8_t no_distances = MAX_ANCHOR_NUMBER;
 	int distances_cm[no_distances];
 	position_t anchor_pos[no_distances]; // position in CM
 	uint8_t no_valid_distances = 0;
@@ -994,182 +977,182 @@ int cmp(const void* m, const void* n) // 定义返回值返回方式
 	return ((struct num*)m)->distance - ((struct num*)n)->distance;
 }
 
-int GetLocation(vec3d* best_solution, Eigen::MatrixXd anchorArray,
-                int* distanceArray, int mode) {
+// int GetLocation(vec3d* best_solution, Eigen::MatrixXd anchorArray,
+//                 int* distanceArray, int mode) {
 
-	vec3d o1, o2, p1, p2, p3, p4;
-	double r1 = 0, r2 = 0, r3 = 0, r4 = 0, best_3derror, best_gdoprate;
-	int result;
-	int error, combination;
-	int valid_anc_count = 0;
-	int j = 0;
-	int use3anc = 0;
+// 	vec3d o1, o2, p1, p2, p3, p4;
+// 	double r1 = 0, r2 = 0, r3 = 0, r4 = 0, best_3derror, best_gdoprate;
+// 	int result;
+// 	int error, combination;
+// 	int valid_anc_count = 0;
+// 	int j = 0;
+// 	int use3anc = 0;
 
-	for (int i = 0; i < (MAX_AHCHOR_NUMBER + 1); i++) // 清空结构体数组
-	{
-		valid_anc_num[i].anc_ID = 0;
-		valid_anc_num[i].distance = 0;
-	}
+// 	for (int i = 0; i < (MAX_ANCHOR_NUMBER + 1); i++) // 清空结构体数组
+// 	{
+// 		valid_anc_num[i].anc_ID = 0;
+// 		valid_anc_num[i].distance = 0;
+// 	}
 
-	for (int i = 0; i < MAX_AHCHOR_NUMBER; i++) // 验证几个有效距离值
-	{
-		if (distanceArray[i] > 0) // 如果测量到的距离存在则有效
-		{
-			valid_anc_count++;
-			valid_anc_num[j].anc_ID = i; // 记录有效基站编号
-			valid_anc_num[j].distance = distanceArray[i]; // 记录有效基站距离
-			j++;
-		}
-	}
+// 	for (int i = 0; i < MAX_ANCHOR_NUMBER; i++) // 验证几个有效距离值
+// 	{
+// 		if (distanceArray[i] > 0) // 如果测量到的距离存在则有效
+// 		{
+// 			valid_anc_count++;
+// 			valid_anc_num[j].anc_ID = i; // 记录有效基站编号
+// 			valid_anc_num[j].distance = distanceArray[i]; // 记录有效基站距离
+// 			j++;
+// 		}
+// 	}
 
-	printf("valid_anc number = %d\n", valid_anc_count);
+// 	printf("valid_anc number = %d\n", valid_anc_count);
 
-	if (mode == 1) {
-		if (valid_anc_count < 3) {
-			return -1;
-			puts("err1");
-		}
+// 	if (mode == 1) {
+// 		if (valid_anc_count < 3) {
+// 			return -1;
+// 			puts("err1");
+// 		}
 
-		else if (valid_anc_count == 3) // 直接执行三基站定位
-		{
-			use3anc = 1;
-			/* Anchors coordinate */
-			p1.x = anchorArray(valid_anc_num[0].anc_ID, 0);
-			p1.y = anchorArray(valid_anc_num[0].anc_ID, 1);
-			p1.z = anchorArray(valid_anc_num[0].anc_ID, 2);
-			p2.x = anchorArray(valid_anc_num[1].anc_ID, 0);
-			p2.y = anchorArray(valid_anc_num[1].anc_ID, 1);
-			p2.z = anchorArray(valid_anc_num[1].anc_ID, 2);
-			p3.x = anchorArray(valid_anc_num[2].anc_ID, 0);
-			p3.y = anchorArray(valid_anc_num[2].anc_ID, 1);
-			p3.z = anchorArray(valid_anc_num[2].anc_ID, 2);
-			p4.x = p1.x;
-			p4.y = p1.y;
-			p4.z = p1.z;
+// 		else if (valid_anc_count == 3) // 直接执行三基站定位
+// 		{
+// 			use3anc = 1;
+// 			/* Anchors coordinate */
+// 			p1.x = anchorArray(valid_anc_num[0].anc_ID, 0);
+// 			p1.y = anchorArray(valid_anc_num[0].anc_ID, 1);
+// 			p1.z = anchorArray(valid_anc_num[0].anc_ID, 2);
+// 			p2.x = anchorArray(valid_anc_num[1].anc_ID, 0);
+// 			p2.y = anchorArray(valid_anc_num[1].anc_ID, 1);
+// 			p2.z = anchorArray(valid_anc_num[1].anc_ID, 2);
+// 			p3.x = anchorArray(valid_anc_num[2].anc_ID, 0);
+// 			p3.y = anchorArray(valid_anc_num[2].anc_ID, 1);
+// 			p3.z = anchorArray(valid_anc_num[2].anc_ID, 2);
+// 			p4.x = p1.x;
+// 			p4.y = p1.y;
+// 			p4.z = p1.z;
 
-			r1 = (double)distanceArray[valid_anc_num[0].anc_ID] / 1000.0;
-			r2 = (double)distanceArray[valid_anc_num[1].anc_ID] / 1000.0;
-			r3 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
-			r4 = r1;
+// 			r1 = (double)distanceArray[valid_anc_num[0].anc_ID] / 1000.0;
+// 			r2 = (double)distanceArray[valid_anc_num[1].anc_ID] / 1000.0;
+// 			r3 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
+// 			r4 = r1;
 
-		}
+// 		}
 
-		else if (valid_anc_count == 4) // 直接执行4基站定位
-		{
-			/* Anchors coordinate */
-			p1.x = anchorArray(valid_anc_num[0].anc_ID, 0);
-			p1.y = anchorArray(valid_anc_num[0].anc_ID, 1);
-			p1.z = anchorArray(valid_anc_num[0].anc_ID, 2);
-			p2.x = anchorArray(valid_anc_num[1].anc_ID, 0);
-			p2.y = anchorArray(valid_anc_num[1].anc_ID, 1);
-			p2.z = anchorArray(valid_anc_num[1].anc_ID, 2);
-			p3.x = anchorArray(valid_anc_num[2].anc_ID, 0);
-			p3.y = anchorArray(valid_anc_num[2].anc_ID, 1);
-			p3.z = anchorArray(valid_anc_num[2].anc_ID, 2);
-			p4.x = anchorArray(valid_anc_num[3].anc_ID, 0);
-			p4.y = anchorArray(valid_anc_num[3].anc_ID, 1);
-			p4.z = anchorArray(valid_anc_num[3].anc_ID, 2);
+// 		else if (valid_anc_count == 4) // 直接执行4基站定位
+// 		{
+// 			/* Anchors coordinate */
+// 			p1.x = anchorArray(valid_anc_num[0].anc_ID, 0);
+// 			p1.y = anchorArray(valid_anc_num[0].anc_ID, 1);
+// 			p1.z = anchorArray(valid_anc_num[0].anc_ID, 2);
+// 			p2.x = anchorArray(valid_anc_num[1].anc_ID, 0);
+// 			p2.y = anchorArray(valid_anc_num[1].anc_ID, 1);
+// 			p2.z = anchorArray(valid_anc_num[1].anc_ID, 2);
+// 			p3.x = anchorArray(valid_anc_num[2].anc_ID, 0);
+// 			p3.y = anchorArray(valid_anc_num[2].anc_ID, 1);
+// 			p3.z = anchorArray(valid_anc_num[2].anc_ID, 2);
+// 			p4.x = anchorArray(valid_anc_num[3].anc_ID, 0);
+// 			p4.y = anchorArray(valid_anc_num[3].anc_ID, 1);
+// 			p4.z = anchorArray(valid_anc_num[3].anc_ID, 2);
 
-			r1 = (double)distanceArray[valid_anc_num[0].anc_ID] / 1000.0;
-			r2 = (double)distanceArray[valid_anc_num[1].anc_ID] / 1000.0;
-			r3 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
-			r4 = (double)distanceArray[valid_anc_num[3].anc_ID] / 1000.0;
+// 			r1 = (double)distanceArray[valid_anc_num[0].anc_ID] / 1000.0;
+// 			r2 = (double)distanceArray[valid_anc_num[1].anc_ID] / 1000.0;
+// 			r3 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
+// 			r4 = (double)distanceArray[valid_anc_num[3].anc_ID] / 1000.0;
 
-		}
+// 		}
 
-		// valid_anc_count 有效基站个数
-		// valid_anc_num[0] 有效基站编号
-		else if (valid_anc_count >
-		         4) // 执行基站选取机制，选取最近的4个基站1234进行计算
-		{
-			qsort(valid_anc_num, (valid_anc_count + 1),
-			      sizeof(valid_anc_num[0]),
-			      cmp); // 将有效距离值进行从小到大排序
-			for (int i = 1; i <= valid_anc_count; i++) // 输出结果
-				printf("No%d DIS=%d,ID=A%d\n", i, valid_anc_num[i].distance,
-				       valid_anc_num[i].anc_ID);
+// 		// valid_anc_count 有效基站个数
+// 		// valid_anc_num[0] 有效基站编号
+// 		else if (valid_anc_count >
+// 		         4) // 执行基站选取机制，选取最近的4个基站1234进行计算
+// 		{
+// 			qsort(valid_anc_num, (valid_anc_count + 1),
+// 			      sizeof(valid_anc_num[0]),
+// 			      cmp); // 将有效距离值进行从小到大排序
+// 			for (int i = 1; i <= valid_anc_count; i++) // 输出结果
+// 				printf("No%d DIS=%d,ID=A%d\n", i, valid_anc_num[i].distance,
+// 				       valid_anc_num[i].anc_ID);
 
-			p1.x = anchorArray(valid_anc_num[0].anc_ID, 0);
-			p1.y = anchorArray(valid_anc_num[0].anc_ID, 1);
-			p1.z = anchorArray(valid_anc_num[0].anc_ID, 2);
-			p2.x = anchorArray(valid_anc_num[1].anc_ID, 0);
-			p2.y = anchorArray(valid_anc_num[1].anc_ID, 1);
-			p2.z = anchorArray(valid_anc_num[1].anc_ID, 2);
-			p3.x = anchorArray(valid_anc_num[2].anc_ID, 0);
-			p3.y = anchorArray(valid_anc_num[2].anc_ID, 1);
-			p3.z = anchorArray(valid_anc_num[2].anc_ID, 2);
-			p4.x = anchorArray(valid_anc_num[3].anc_ID, 0);
-			p4.y = anchorArray(valid_anc_num[3].anc_ID, 1);
-			p4.z = anchorArray(valid_anc_num[3].anc_ID, 2);
+// 			p1.x = anchorArray(valid_anc_num[0].anc_ID, 0);
+// 			p1.y = anchorArray(valid_anc_num[0].anc_ID, 1);
+// 			p1.z = anchorArray(valid_anc_num[0].anc_ID, 2);
+// 			p2.x = anchorArray(valid_anc_num[1].anc_ID, 0);
+// 			p2.y = anchorArray(valid_anc_num[1].anc_ID, 1);
+// 			p2.z = anchorArray(valid_anc_num[1].anc_ID, 2);
+// 			p3.x = anchorArray(valid_anc_num[2].anc_ID, 0);
+// 			p3.y = anchorArray(valid_anc_num[2].anc_ID, 1);
+// 			p3.z = anchorArray(valid_anc_num[2].anc_ID, 2);
+// 			p4.x = anchorArray(valid_anc_num[3].anc_ID, 0);
+// 			p4.y = anchorArray(valid_anc_num[3].anc_ID, 1);
+// 			p4.z = anchorArray(valid_anc_num[3].anc_ID, 2);
 
-			r1 = (double)distanceArray[valid_anc_num[1].anc_ID] / 1000.0;
-			r2 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
-			r3 = (double)distanceArray[valid_anc_num[3].anc_ID] / 1000.0;
-			r4 = (double)distanceArray[valid_anc_num[4].anc_ID] / 1000.0;
+// 			r1 = (double)distanceArray[valid_anc_num[1].anc_ID] / 1000.0;
+// 			r2 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
+// 			r3 = (double)distanceArray[valid_anc_num[3].anc_ID] / 1000.0;
+// 			r4 = (double)distanceArray[valid_anc_num[4].anc_ID] / 1000.0;
 
-			printf("use1=A%d,use2=A%d,use3=A%d,use4=A%d\n",
-			       valid_anc_num[1].anc_ID, valid_anc_num[2].anc_ID,
-			       valid_anc_num[3].anc_ID, valid_anc_num[4].anc_ID);
-		}
+// 			printf("use1=A%d,use2=A%d,use3=A%d,use4=A%d\n",
+// 			       valid_anc_num[1].anc_ID, valid_anc_num[2].anc_ID,
+// 			       valid_anc_num[3].anc_ID, valid_anc_num[4].anc_ID);
+// 		}
 
-		result = deca_3dlocate(&o1, &o2, best_solution, &error, &best_3derror,
-		                       &best_gdoprate, p1, r1, p2, r2, p3, r3, p4, r4,
-		                       &combination);
+// 		result = deca_3dlocate(&o1, &o2, best_solution, &error, &best_3derror,
+// 		                       &best_gdoprate, p1, r1, p2, r2, p3, r3, p4, r4,
+// 		                       &combination);
 
-		if ((result == 0) &&
-		    (valid_anc_count >
-		     4)) // 多于4基站选取后计算失败，把第1舍掉用第2345计算
-		{
-			puts("Second calculation");
-			p1.x = anchorArray(valid_anc_num[0].anc_ID, 0);
-			p1.y = anchorArray(valid_anc_num[0].anc_ID, 1);
-			p1.z = anchorArray(valid_anc_num[0].anc_ID, 2);
-			p2.x = anchorArray(valid_anc_num[1].anc_ID, 0);
-			p2.y = anchorArray(valid_anc_num[1].anc_ID, 1);
-			p2.z = anchorArray(valid_anc_num[1].anc_ID, 2);
-			p3.x = anchorArray(valid_anc_num[2].anc_ID, 0);
-			p3.y = anchorArray(valid_anc_num[2].anc_ID, 1);
-			p3.z = anchorArray(valid_anc_num[2].anc_ID, 2);
-			p4.x = anchorArray(valid_anc_num[3].anc_ID, 0);
-			p4.y = anchorArray(valid_anc_num[3].anc_ID, 1);
-			p4.z = anchorArray(valid_anc_num[3].anc_ID, 2);
+// 		if ((result == 0) &&
+// 		    (valid_anc_count >
+// 		     4)) // 多于4基站选取后计算失败，把第1舍掉用第2345计算
+// 		{
+// 			puts("Second calculation");
+// 			p1.x = anchorArray(valid_anc_num[0].anc_ID, 0);
+// 			p1.y = anchorArray(valid_anc_num[0].anc_ID, 1);
+// 			p1.z = anchorArray(valid_anc_num[0].anc_ID, 2);
+// 			p2.x = anchorArray(valid_anc_num[1].anc_ID, 0);
+// 			p2.y = anchorArray(valid_anc_num[1].anc_ID, 1);
+// 			p2.z = anchorArray(valid_anc_num[1].anc_ID, 2);
+// 			p3.x = anchorArray(valid_anc_num[2].anc_ID, 0);
+// 			p3.y = anchorArray(valid_anc_num[2].anc_ID, 1);
+// 			p3.z = anchorArray(valid_anc_num[2].anc_ID, 2);
+// 			p4.x = anchorArray(valid_anc_num[3].anc_ID, 0);
+// 			p4.y = anchorArray(valid_anc_num[3].anc_ID, 1);
+// 			p4.z = anchorArray(valid_anc_num[3].anc_ID, 2);
 
-			r1 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
-			r2 = (double)distanceArray[valid_anc_num[3].anc_ID] / 1000.0;
-			r3 = (double)distanceArray[valid_anc_num[4].anc_ID] / 1000.0;
-			r4 = (double)distanceArray[valid_anc_num[5].anc_ID] / 1000.0;
+// 			r1 = (double)distanceArray[valid_anc_num[2].anc_ID] / 1000.0;
+// 			r2 = (double)distanceArray[valid_anc_num[3].anc_ID] / 1000.0;
+// 			r3 = (double)distanceArray[valid_anc_num[4].anc_ID] / 1000.0;
+// 			r4 = (double)distanceArray[valid_anc_num[5].anc_ID] / 1000.0;
 
-			printf("use1=A%d,use2=A%d,use3=A%d,use4=A%d\n",
-			       valid_anc_num[2].anc_ID, valid_anc_num[3].anc_ID,
-			       valid_anc_num[4].anc_ID, valid_anc_num[5].anc_ID);
+// 			printf("use1=A%d,use2=A%d,use3=A%d,use4=A%d\n",
+// 			       valid_anc_num[2].anc_ID, valid_anc_num[3].anc_ID,
+// 			       valid_anc_num[4].anc_ID, valid_anc_num[5].anc_ID);
 
-			result = deca_3dlocate(&o1, &o2, best_solution, &error,
-			                       &best_3derror, &best_gdoprate, p1, r1, p2,
-			                       r2, p3, r3, p4, r4, &combination);
-		}
+// 			result = deca_3dlocate(&o1, &o2, best_solution, &error,
+// 			                       &best_3derror, &best_gdoprate, p1, r1, p2,
+// 			                       r2, p3, r3, p4, r4, &combination);
+// 		}
 
-		if (result >= 0) {
-			if (o1.z <= o2.z)
-				best_solution->z = o1.z;
-			else
-				best_solution->z = o2.z;
-			if (use3anc == 1 || result == TRIL_3SPHERES) {
-				if (o1.z < p1.z)
-					*best_solution = o1;
-				else
-					*best_solution =
-					    o2; // assume tag is below the anchors (1, 2, and 3)
-			}
+// 		if (result >= 0) {
+// 			if (o1.z <= o2.z)
+// 				best_solution->z = o1.z;
+// 			else
+// 				best_solution->z = o2.z;
+// 			if (use3anc == 1 || result == TRIL_3SPHERES) {
+// 				if (o1.z < p1.z)
+// 					*best_solution = o1;
+// 				else
+// 					*best_solution =
+// 					    o2; // assume tag is below the anchors (1, 2, and 3)
+// 			}
 
-			return result;
-		}
-		return -1;
-	} else if (mode == 2) {
-		result = leastSquaresMethod(best_solution, anchorArray, distanceArray);
+// 			return result;
+// 		}
+// 		return -1;
+// 	} else if (mode == 2) {
+// 		result = leastSquaresMethod(best_solution, anchorArray, distanceArray);
 
-		return result;
-	} else {
-		printf("No suitable tagposition mode!\n");
-		return -1;
-	}
-}
+// 		return result;
+// 	} else {
+// 		printf("No suitable tagposition mode!\n");
+// 		return -1;
+// 	}
+// }
