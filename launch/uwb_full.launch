@@ -1,8 +1,12 @@
 <launch>
+    <node pkg="uwb_location" name="uwb_range" type="uwb_range" output="screen">
+        <param name="port_name" value="/dev/ttyUSB0"/>
+    </node>
+
     <node pkg="uwb_location" name="uwb_location" type="uwb_location" output="screen">
         <!-- 0: leastSquares, 1: trilateration -->
         <param name="location_method" value="0"/>
-        
+
         <!-- 0: fixed anchor, 1: moving anchor -->
         <param name="anchorMode" value="0"/>
 

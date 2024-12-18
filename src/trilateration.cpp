@@ -370,7 +370,7 @@ int trilateration(vec3d* const result1, vec3d* const result2,
 		/* No intersection between sphere 4 and the line with the gradient of
 		 * result1-result2! */
 		*best_solution = *result1; // result1 is the closer solution to sphere 4
-		// return ERR_TRIL_NOINTERSECTION_SPHERE4;
+		                           // return ERR_TRIL_NOINTERSECTION_SPHERE4;
 
 	} else {
 
@@ -969,7 +969,7 @@ int leastSquaresMethod(vec3d* best_solution, Eigen::MatrixXd anchorArray,
 
 	// printf("x=%f, y=%f, z=%f\n",x_pos, y_pos, z_pos);
 
-	return 1;
+	return UWB_OK;
 }
 
 int cmp(const void* m, const void* n) // 定义返回值返回方式

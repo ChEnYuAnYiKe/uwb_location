@@ -30,7 +30,7 @@ private:
 
 	void rangeCallback(const uwb_location::RangeArray::ConstPtr& ranges);
 
-	int leastSquaresPosition();
+	int leastSquaresMethod();
 
 	int trilaterationPosition();
 
